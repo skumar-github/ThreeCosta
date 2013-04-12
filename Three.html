@@ -7,9 +7,12 @@
 		<style>canvas { width: 100%; height: 100% }</style>
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
-  		<script src="https://raw.github.com/mrdoob/three.js/master/build/three.js"></script>
+  		<script src="https://raw.github.com/mrdoob/three.js/master/build/three.min.js"></script>
 		<script src="https://raw.github.com/mrdoob/three.js/master/examples/js/controls/TrackballControls.js"></script>
 		<script src="https://raw.github.com/mrdoob/three.js/master/build/Clock.js"></script>
+		<script src="./scripts/OBJLoader.js"></script>
+
+
 	</head>
 	<body>
 		<script>
@@ -18,50 +21,8 @@
 		var isMouseDown = false;
 		var onMouseDownPosition = {};
 		
-		$(document).mousedown(function(e) {
-		    isMouseDown = true;
-		    console.log("MOUSE DOWN");
-		    onMouseDownPosition.x = e.pageX;
-		    onMouseDownPosition.y = e.pageY;
-		});
 
 
-		function onDocumentMouseMove( event ) {
-			//$(document).mousemove(function ( event ) {
-			    event.preventDefault();
-			
-			    if ( isMouseDown ) {
-			
-			        theta = - ( ( event.clientX - onMouseDownPosition.x ) * 0.5 )
-			                + onMouseDownTheta;
-			        phi = ( ( event.clientY - onMouseDownPosition.y ) * 0.5 )
-			              + onMouseDownPhi;
-			
-			        phi = Math.min( 180, Math.max( 0, phi ) );
-			
-			        camera.position.x = radious * Math.sin( theta * Math.PI / 360 )
-			                            * Math.cos( phi * Math.PI / 360 );
-			        camera.position.y = radious * Math.sin( phi * Math.PI / 360 );
-			        camera.position.z = radious * Math.cos( theta * Math.PI / 360 )
-			                            * Math.cos( phi * Math.PI / 360 );
-			        camera.updateMatrix();
-			
-			    }
-			
-			    mouse3D = projector.unprojectVector(
-			        new THREE.Vector3(
-			            ( event.clientX / renderer.domElement.width ) * 2 - 1,
-			            - ( event.clientY / renderer.domElement.height ) * 2 + 1,
-			            0.5
-			        ),
-			        camera
-			    );
-			    ray.direction = mouse3D.subSelf( camera.position ).normalize();
-			
-			    interact();
-			    render();
-			
-			}
 
 
 			//window.onmousedown = onDocumentMouseMove;
@@ -75,11 +36,15 @@
 
 			var geometry = new THREE.TorusGeometry( 50, 20, 16, 50, Math.PI * 2);
 			var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00, shading: THREE.FlatShading});
+			surfaceMaterial.side = THREE.DoubleSide;
+			var surfaceMaterial2 = new THREE.MeshLambertMaterial({color: 0xb536da, shading: THREE.FlatShading});
+			surfaceMaterial2.side = THREE.DoubleSide;			
 			var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
 			var multiMaterial = [surfaceMaterial, wireframeMaterial];
-			//var tours = new THREE.Mesh(geometry, multiMaterial);
-			var torus = THREE.SceneUtils.createMultiMaterialObject(geometry.clone(), multiMaterial);
-			scene.add(torus);
+			var multiMaterial2 = [surfaceMaterial2, wireframeMaterial];
+
+			//var torus = THREE.SceneUtils.createMultiMaterialObject(geometry.clone(), multiMaterial);
+			//scene.add(torus);
 
 
 			var controls = new THREE.TrackballControls(camera);
@@ -90,14 +55,48 @@
 			// set its position
 			pointLight.position.x = 10;
 			pointLight.position.y = 250;
-			pointLight.position.z = 150;
+			pointLight.position.z = 250;
 			
 			// add to the scene
 			scene.add(pointLight);
 
-			camera.position.z = 105;
+			camera.position.z = 195;
 			
 			var clock = new THREE.Clock;
+			
+			
+			var loader = new THREE.OBJLoader();
+			
+			var vertTest = 10;
+	        //loader.load( "img/male02.obj", function ( object ) {
+	        loader.load( "./obj/0.obj", function ( object ) {
+	                    //object.position.y = - 80;
+	                    var ge = object.children[0].geometry;
+	                    ge.dynamic = true;
+	                    
+	                    
+						
+						makePointSphere(scene, ge.vertices[vertTest]);
+
+	                    var a = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial);
+	                    a.scale.set(.5,.5,.5)
+						scene.add(a);
+	                    //scene.add( object );
+	                } );
+	                
+	         loader.load( "./obj/100.obj", function ( object ) {
+	                    //object.position.y = - 80;
+	                    var ge = object.children[0].geometry;
+	                    ge.dynamic = true;
+	                    
+	                    
+	                    makePointSphere(scene, ge.vertices[vertTest]);
+
+
+	                    var a = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+						a.scale.set(.5,.5,.5)
+						scene.add(a);
+	                } );
 
 			function render() {
 				requestAnimationFrame(render);
@@ -113,6 +112,97 @@
 				renderer.render(scene, camera);
 			}
 			render();
+			
+
+	   function makePointSphere(scene, position, color){
+	   	
+	   	  if (!color) color = 0xCC0000;
+          var sphereMaterial =
+		  new THREE.MeshLambertMaterial(
+		    {
+		      color: color
+		    });
+
+            var sphere = new THREE.Mesh(
+
+			  new THREE.SphereGeometry(
+			    2,
+			    5,
+			    5),
+			
+			  sphereMaterial);
+			
+			sphere.position = position;
+			// add the sphere to the scene
+			scene.add(sphere);
+	   }
+			 
+	   function onDocumentMouseDown(event) {
+		    //isMouseDown = true;
+		    console.log("Click");
+		    //onMouseDownPosition.x = e.pageX;
+		    //onMouseDownPosition.y = e.pageY;
+		    
+ 			console.log('Morphable-body-obj: Width '+ window.innerWidth ) ;
+            console.log('Morphable-body-obj: Height '+ window.innerHeight) ;
+
+            var vector = new THREE.Vector3 ((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight)*2+1, 0.5);
+            var projector = new THREE.Projector();
+            projector.unprojectVector(vector, camera);
+            var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+            //console.log(ray)
+            var intersects = ray.intersectObjects(scene.children, true);
+            console.log("intersects: ", intersects);
+            if (intersects.length > 0)
+              {
+              	/*
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/img/originalMeanModel.obj', false);
+                xhr.send(null);
+                var text = xhr.responseText;
+                var origText = text; 
+                var lines = text.split("\n");
+                for (i=0; i<6449; i++){
+                  lines[i] = lines[i].split(" ");
+                }
+                var low = Math.sqrt(
+                      (Math.pow((intersects[0].point.x - parseFloat(lines[0][1])), 2))+
+                      (Math.pow((intersects[0].point.y - parseFloat(lines[0][2])), 2))+
+                      (Math.pow((intersects[0].point.z - parseFloat(lines[0][3])), 2))
+                    );
+
+                var c = 0;
+                for(i=1; i<6449; i++){
+                  var temp = Math.sqrt(
+                      (Math.pow((intersects[0].point.x - parseFloat(lines[i][1])), 2))+
+                      (Math.pow((intersects[0].point.y - parseFloat(lines[i][2])), 2))+
+                      (Math.pow((intersects[0].point.z - parseFloat(lines[i][3])), 2))
+                  );
+                  if(temp < low){
+                    low = temp;
+                    c=i;
+                  }
+                }
+
+                console.log(
+                  'Mouse coordinates:' + '\nx = ' + intersects[0].point.x + '\ny = ' + intersects[0].point.y + '\nz = ' + intersects[0].point.z +'\n'+
+                  'Nearest Vertex' + '\nx= ' + lines[c][1] + '\ny= ' + lines[c][2] + '\nz =' + lines[c][3] + "\n" +
+                  'Difference' + '\nx= ' + (intersects[0].point.x - lines[c][1]) + '\ny= ' + (intersects[0].point.y - lines[c][2]) + '\nz= ' + (intersects[0].point.z - lines[c][3]) 
+                );*/
+
+                intersects[0].object.material.color = new THREE.Color( Math.random() * 0xffffff );
+				makePointSphere(scene, intersects[0].point, 0xffb100)
+                //intersects[0].face.color = new THREE.Color(0xffffff);
+                //intersects[0].object.geometry.colorsNeedUpdate = true;
+                //intersects[0].object.geometry.dynamic = true;
+               }
+            else{
+                //alert('error');
+                //console.log('Nothing');
+            }
+		};
+
+					 document.addEventListener( 'click', onDocumentMouseDown, false );
 		</script>
 	</body>
 
