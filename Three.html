@@ -1,0 +1,122 @@
+<!doctype html>
+ 
+<html lang="en">
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>canvas { width: 100%; height: 100% }</style>
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+  		<script src="https://raw.github.com/mrdoob/three.js/master/build/three.js"></script>
+		<script src="https://raw.github.com/mrdoob/three.js/master/examples/js/controls/TrackballControls.js"></script>
+		<script src="https://raw.github.com/mrdoob/three.js/master/build/Clock.js"></script>
+	</head>
+	<body>
+		<script>
+		
+
+		var isMouseDown = false;
+		var onMouseDownPosition = {};
+		
+		$(document).mousedown(function(e) {
+		    isMouseDown = true;
+		    console.log("MOUSE DOWN");
+		    onMouseDownPosition.x = e.pageX;
+		    onMouseDownPosition.y = e.pageY;
+		});
+
+
+		function onDocumentMouseMove( event ) {
+			//$(document).mousemove(function ( event ) {
+			    event.preventDefault();
+			
+			    if ( isMouseDown ) {
+			
+			        theta = - ( ( event.clientX - onMouseDownPosition.x ) * 0.5 )
+			                + onMouseDownTheta;
+			        phi = ( ( event.clientY - onMouseDownPosition.y ) * 0.5 )
+			              + onMouseDownPhi;
+			
+			        phi = Math.min( 180, Math.max( 0, phi ) );
+			
+			        camera.position.x = radious * Math.sin( theta * Math.PI / 360 )
+			                            * Math.cos( phi * Math.PI / 360 );
+			        camera.position.y = radious * Math.sin( phi * Math.PI / 360 );
+			        camera.position.z = radious * Math.cos( theta * Math.PI / 360 )
+			                            * Math.cos( phi * Math.PI / 360 );
+			        camera.updateMatrix();
+			
+			    }
+			
+			    mouse3D = projector.unprojectVector(
+			        new THREE.Vector3(
+			            ( event.clientX / renderer.domElement.width ) * 2 - 1,
+			            - ( event.clientY / renderer.domElement.height ) * 2 + 1,
+			            0.5
+			        ),
+			        camera
+			    );
+			    ray.direction = mouse3D.subSelf( camera.position ).normalize();
+			
+			    interact();
+			    render();
+			
+			}
+
+
+			//window.onmousedown = onDocumentMouseMove;
+
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+
+			var geometry = new THREE.TorusGeometry( 50, 20, 16, 50, Math.PI * 2);
+			var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00, shading: THREE.FlatShading});
+			var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
+			var multiMaterial = [surfaceMaterial, wireframeMaterial];
+			//var tours = new THREE.Mesh(geometry, multiMaterial);
+			var torus = THREE.SceneUtils.createMultiMaterialObject(geometry.clone(), multiMaterial);
+			scene.add(torus);
+
+
+			var controls = new THREE.TrackballControls(camera);
+			
+
+			var pointLight = new THREE.PointLight(0xFFFFFF);
+			
+			// set its position
+			pointLight.position.x = 10;
+			pointLight.position.y = 250;
+			pointLight.position.z = 150;
+			
+			// add to the scene
+			scene.add(pointLight);
+
+			camera.position.z = 105;
+			
+			var clock = new THREE.Clock;
+
+			function render() {
+				requestAnimationFrame(render);
+
+				//torus.rotation.x += 0.01;
+				//torus.rotation.y += 0.01;
+				
+				// Fetch the delta from THREE.js' clock.
+			    var delta = clock.getDelta();
+			    // Pass it to the camera controller.
+			    controls.update(delta);
+
+				renderer.render(scene, camera);
+			}
+			render();
+		</script>
+	</body>
+
+
+
+
+</html>
