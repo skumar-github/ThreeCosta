@@ -21,7 +21,8 @@
 		var isMouseDown = false;
 		var onMouseDownPosition = {};
 		
-
+		var torus1;
+		var torus2;
 
 
 
@@ -61,7 +62,7 @@
 			// add to the scene
 			scene.add(pointLight);
 
-			camera.position.z = 195;
+			camera.position.z = 505;
 			
 			var clock = new THREE.Clock;
 			
@@ -77,11 +78,12 @@
 	                    
 	                    
 						
-						makePointSphere(scene, ge.vertices[vertTest]);
+						//makePointSphere(scene, ge.vertices[vertTest]);
 
-	                    var a = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial);
-	                    a.scale.set(.5,.5,.5)
-						scene.add(a);
+	                    torus1 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial);
+	                    //torus1.scale.set(.5,.5,.5)
+						scene.add(torus1);
+						//console.log(torus1.children[0].geometry.vertices)
 	                    //scene.add( object );
 	                } );
 	                
@@ -91,12 +93,12 @@
 	                    ge.dynamic = true;
 	                    
 	                    
-	                    makePointSphere(scene, ge.vertices[vertTest]);
+	                    //makePointSphere(scene, ge.vertices[vertTest]);
 
 
-	                    var a = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-						a.scale.set(.5,.5,.5)
-						scene.add(a);
+	                    torus2 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+						//torus2.scale.set(.5,.5,.5)
+						//scene.add(torus2);
 	                } );
 
 			function render() {
@@ -127,7 +129,7 @@
             var sphere = new THREE.Mesh(
 
 			  new THREE.SphereGeometry(
-			    2,
+			    1,
 			    5,
 			    5),
 			
@@ -140,20 +142,25 @@
 			 
 	   function onDocumentMouseDown(event) {
 		    //isMouseDown = true;
-		    console.log("Click");
+		    //console.log("Click");
 		    //onMouseDownPosition.x = e.pageX;
 		    //onMouseDownPosition.y = e.pageY;
 		    
- 			console.log('Morphable-body-obj: Width '+ window.innerWidth ) ;
-            console.log('Morphable-body-obj: Height '+ window.innerHeight) ;
+ 			//console.log('Morphable-body-obj: Width '+ window.innerWidth ) ;
+            //console.log('Morphable-body-obj: Height '+ window.innerHeight) ;
 
-            var vector = new THREE.Vector3 ((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight)*2+1, 0.5);
-            var projector = new THREE.Projector();
-            projector.unprojectVector(vector, camera);
-            var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+			var projector = new THREE.Projector();
+		    var x = event.clientX;
+		    var y = event.clientY;
+		    var v = new THREE.Vector3((x/window.innerWidth)*2-1, -(y/window.innerHeight)*2+1, 0.5);
+		    
+		    //projector.unprojectVector(v, camera);
+		    //var ray = new THREE.Raycaster(camera.position, v.sub(camera.position).normalize());
+		    //var mouse2D = new THREE.Vector3( x, y, 0.5 );
+		    var ray = projector.pickingRay( v, camera );
             //console.log(ray)
-            var intersects = ray.intersectObjects(scene.children, true);
-            console.log("intersects: ", intersects);
+            var intersects = ray.intersectObjects([torus1], true);
+            //console.log("intersects: ", intersects);
             if (intersects.length > 0)
               {
               	/*
@@ -192,7 +199,34 @@
                 );*/
 
                 //intersects[0].object.material.color = new THREE.Color( Math.random() * 0xffffff );
-				makePointSphere(scene, intersects[0].point, 0xffb100)
+                
+                var lowest;
+                var lowestDist;
+                var verts = torus1.children[0].geometry.vertices;
+                for (var i=0;i<verts.length;i++){
+                	if (i==0) {
+                		lowest = i;
+                		lowestDist = verts[i].distanceTo(intersects[0].point);
+                		continue;
+                	}
+                	else{
+                		var currDist = verts[i].distanceTo(intersects[0].point);
+                		//console.log("currDust: ", currDist)
+                		if (currDist < lowestDist){
+                			lowest = i;
+                			lowestDist = currDist;
+                		}
+                		
+                		if (currDist == lowestDist && i!=lowest){
+                			console.log("MATCH LOWEST: " + i + " " + lowest + " " + currDist)
+                		}
+                	}
+                	//console.log("lowest dist: ", lowestDist)
+                }
+                //console.log(lowest, verts[lowest]);
+				makePointSphere(scene, verts[lowest], 0xffb100);
+				console.log("VERT VALUE: ", lowest);// , verts[lowest])
+				//makePointSphere(scene, intersects[0].point, 0xffb100);
                 //intersects[0].face.color = new THREE.Color(0xffffff);
                 //intersects[0].object.geometry.colorsNeedUpdate = true;
                 //intersects[0].object.geometry.dynamic = true;
