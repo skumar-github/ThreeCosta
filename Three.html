@@ -28,7 +28,8 @@
 			//window.onmousedown = onDocumentMouseMove;
 
 			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+			var camera = new THREE.PerspectiveCamera(20, window.innerWidth/window.innerHeight, 0.1, 1000);
+			//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
 
 			var renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -190,7 +191,7 @@
                   'Difference' + '\nx= ' + (intersects[0].point.x - lines[c][1]) + '\ny= ' + (intersects[0].point.y - lines[c][2]) + '\nz= ' + (intersects[0].point.z - lines[c][3]) 
                 );*/
 
-                intersects[0].object.material.color = new THREE.Color( Math.random() * 0xffffff );
+                //intersects[0].object.material.color = new THREE.Color( Math.random() * 0xffffff );
 				makePointSphere(scene, intersects[0].point, 0xffb100)
                 //intersects[0].face.color = new THREE.Color(0xffffff);
                 //intersects[0].object.geometry.colorsNeedUpdate = true;
