@@ -1,53 +1,49 @@
-  function makeVertLines(scene, vertsA, vertsB, indA, indB){
-    
-    if (indA.length != indB.length){
-    	throw ("makeVertLines error: inequal indices lengths")
-    }
-    
-    if (vertsA.length != vertsB.length){
-    	//throw ("makeVertLines error: inequal vertices lengths")
-    }
+function makeLine(scene, ptA, ptB){
+
     
     var material = new THREE.LineBasicMaterial({
         color: 0x0000ff,
     });   	
 
-	
-	for (var i=0;i<indA.length;i++){
-		var geometry = new THREE.Geometry();
-	    geometry.vertices.push(vertsA[indA[i]]);
-	    geometry.vertices.push(vertsB[indB[i]]);
-	    
-	    var line = new THREE.Line(geometry, material);
-	    scene.add(line);
-	}
 
-   }
+	var geometry = new THREE.Geometry();
+    geometry.vertices.push(ptA);
+    geometry.vertices.push(ptB);
+    
+    var line = new THREE.Line(geometry, material);
+    scene.add(line);
+	
+
+ }
    
 
 function vertMaster(scene, vertsA, vertsB){
-	makeVertLines(scene, vertsA, 
-	  vertsB, 
-	  [26,24,22,20,18,16,14,12,10,8,6,4,1,0],
-	  [402,414,413,412,411,410,409,408,407,406,405,404,1,3]);
-	  
-	  
-	makeVertLines(scene, vertsA, 
-	  vertsB, 
-	  	  
-	  [27,  25,	23,	21,	19,	17,	15,	13,	11,	9,	7,	5,	2,	3],
-[29,  27,	25,	23,	21,	19,	17,	15,	13,	11,	9,	7,	2,	4]);
+
+
+	for (var i=0;i<vertMapA.length;i++){
+		makeLine(scene, vertsA[vertMapA[i]], vertsB[vertMapB[i]]);		
+	}
 
 }
 
 
 vertMapA = [ 
-	  [26,24,22,20,18,16,14,12,10,8,6,4,1,0],
-	  [27,  25,	23,	21,	19,	17,	15,	13,	11,	9,	7,	5,	2,	3],
+	  26,24,22,20,18,16,14,12,10,8,6,4,1,0,
+	  27,  25,	23,	21,	19,	17,	15,	13,	11,	9,	7,	5,	2,	3,
+	  56,	41,	40,	39,	38,	37,	36,	35,	34,	33,	32,	31,	30,	28,	29,
+	  57,	55,	54,	53,	52,	51,	50,	49,	48,	47,	46,	45,	44,	42,	43, 
+	  72,	71,	70,	69,	68,	67,	66,	65,	64,	63,	62,	61,	60,	58,	59,	79,	77,	74,	73,
+	  95,	94,	93	,92,	91	,90,	89,	88	,87	,86,	85	,84,	83,	82,	81,	80	,78,	75,	76,
+	  114	,113	,112,	111,	110,	109	,108,	107	,106,	105,	104,	103,	102,	101,	100	,99	,98	,96,	97,
 ];
 
 
 vertMapB = [ 
-	  [402,414,413,412,411,410,409,408,407,406,405,404,1,3],
-	  [29,  27,	25,	23,	21,	19,	17,	15,	13,	11,	9,	7,	2,	4],
+	  402,414,413,412,411,410,409,408,407,406,405,404,1,3,
+	  29,  27,	25,	23,	21,	19,	17,	15,	13,	11,	9,	7,	2,	4,
+	  45,	30,	28,	26,	24,	22,	20,	18,	16,	14,	12,	10,	8,	5,	6,
+	  46,	44,	43,	42,	41,	40,	39,	38,	37,	36,	35,	34,	33,	31,	32,
+	  62,	61,	60,	59,	58,	57,	56,	55,	54,	53,	52,	51,	50,	48,	49,	70,	68,	65,	64,
+	  86,	85,	84,	83,	82,	81,	80,	79,	78,	77,	76,	75,	74,	73,	72,	71,	69,	66,	67,
+	  106,	105,	104,	103,	102,	101,	100,	99,	98,	97,	96,	95,	94,	93,	92,	91,	90,	88,	89,
 ];
