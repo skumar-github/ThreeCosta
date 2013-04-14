@@ -7,9 +7,10 @@
 		<style>canvas { width: 100%; height: 100% }</style>
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
-  		<script src="https://raw.github.com/mrdoob/three.js/master/build/three.min.js"></script>
+  		<script src="./scripts/three.min.js"></script>
 		<script src="https://raw.github.com/mrdoob/three.js/master/examples/js/controls/TrackballControls.js"></script>
-		<script src="https://raw.github.com/mrdoob/three.js/master/build/Clock.js"></script>
+		<script src="./scripts/Clock.js"></script>
+		<script src="./vertLines.js"></script>
 		<script src="./scripts/OBJLoader.js"></script>
 
 
@@ -88,22 +89,33 @@
 						scene.add(torus1);
 						//console.log(torus1.children[0].geometry.vertices)
 	                    //scene.add( object );
+	                    
+	                   	loader.load( "./obj/100.obj", function ( object ) {
+		                    //object.position.y = - 80;
+		                    var ge = object.children[0].geometry;
+		                    ge.dynamic = true;
+		                    
+		                    
+		                    //makePointSphere(scene, ge.vertices[vertTest]);
+	
+	
+		                    torus2 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+							//torus2.scale.set(.5,.5,.5)
+							scene.add(torus2);
+							
+							makeVertLines(scene, torus1.children[0].geometry.vertices, 
+								  torus2.children[0].geometry.vertices, 
+								  [26,24,22,20,18,16,14,12,10,8,6,4,1,0],
+								  [402,414,413,412,411,410,409,408,407,406,405,404,1,3]);
+				           } );
 	                } );
 	                
-	         loader.load( "./obj/100.obj", function ( object ) {
-	                    //object.position.y = - 80;
-	                    var ge = object.children[0].geometry;
-	                    ge.dynamic = true;
-	                    
-	                    
-	                    //makePointSphere(scene, ge.vertices[vertTest]);
 
 
-	                    torus2 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-						//torus2.scale.set(.5,.5,.5)
-						//scene.add(torus2);
-	                } );
 
+
+		  
+		  
 			function render() {
 				requestAnimationFrame(render);
 
@@ -121,6 +133,31 @@
 			
 
 	   function makePointSphere(scene, position, color){
+	   	
+	   	  if (!color) color = 0xCC0000;
+          var sphereMaterial =
+		  new THREE.MeshLambertMaterial(
+		    {
+		      color: color
+		    });
+
+            var sphere = new THREE.Mesh(
+
+			  new THREE.SphereGeometry(
+			    1,
+			    5,
+			    5),
+			
+			  sphereMaterial);
+			
+			sphere.position = position;
+			// add the sphere to the scene
+			scene.add(sphere);
+			spheres.push(sphere);
+	   }
+	   
+	   
+	  function makePointSphere(scene, position, color){
 	   	
 	   	  if (!color) color = 0xCC0000;
           var sphereMaterial =
@@ -163,50 +200,15 @@
 			    //var mouse2D = new THREE.Vector3( x, y, 0.5 );
 			    var ray = projector.pickingRay( v, camera );
 	            //console.log(ray)
-	            var intersects = ray.intersectObjects([torus1], true);
+	            var intersects = ray.intersectObjects([torus2], true);
 	            //console.log("intersects: ", intersects);
 	            if (intersects.length > 0)
 	              {
-	              	/*
-	                var xhr = new XMLHttpRequest();
-	                xhr.open('GET', '/img/originalMeanModel.obj', false);
-	                xhr.send(null);
-	                var text = xhr.responseText;
-	                var origText = text; 
-	                var lines = text.split("\n");
-	                for (i=0; i<6449; i++){
-	                  lines[i] = lines[i].split(" ");
-	                }
-	                var low = Math.sqrt(
-	                      (Math.pow((intersects[0].point.x - parseFloat(lines[0][1])), 2))+
-	                      (Math.pow((intersects[0].point.y - parseFloat(lines[0][2])), 2))+
-	                      (Math.pow((intersects[0].point.z - parseFloat(lines[0][3])), 2))
-	                    );
-	
-	                var c = 0;
-	                for(i=1; i<6449; i++){
-	                  var temp = Math.sqrt(
-	                      (Math.pow((intersects[0].point.x - parseFloat(lines[i][1])), 2))+
-	                      (Math.pow((intersects[0].point.y - parseFloat(lines[i][2])), 2))+
-	                      (Math.pow((intersects[0].point.z - parseFloat(lines[i][3])), 2))
-	                  );
-	                  if(temp < low){
-	                    low = temp;
-	                    c=i;
-	                  }
-	                }
-	
-	                console.log(
-	                  'Mouse coordinates:' + '\nx = ' + intersects[0].point.x + '\ny = ' + intersects[0].point.y + '\nz = ' + intersects[0].point.z +'\n'+
-	                  'Nearest Vertex' + '\nx= ' + lines[c][1] + '\ny= ' + lines[c][2] + '\nz =' + lines[c][3] + "\n" +
-	                  'Difference' + '\nx= ' + (intersects[0].point.x - lines[c][1]) + '\ny= ' + (intersects[0].point.y - lines[c][2]) + '\nz= ' + (intersects[0].point.z - lines[c][3]) 
-	                );*/
-	
-	                //intersects[0].object.material.color = new THREE.Color( Math.random() * 0xffffff );
+
 	                
 	                var lowest;
 	                var lowestDist;
-	                var verts = torus1.children[0].geometry.vertices;
+	                var verts = torus2.children[0].geometry.vertices;
 	                for (var i=0;i<verts.length;i++){
 	                	if (i==0) {
 	                		lowest = i;
@@ -233,6 +235,8 @@
 						console.log(lowest);// , verts[lowest])
 						lastClicked = lowest;	
 					}
+					
+
 					//makePointSphere(scene, intersects[0].point, 0xffb100);
 	                //intersects[0].face.color = new THREE.Color(0xffffff);
 	                //intersects[0].object.geometry.colorsNeedUpdate = true;
@@ -247,7 +251,8 @@
 
 					 document.addEventListener( 'click', onDocumentMouseDown, false );
 					 
-					 
+
+								  	 
 			    document.onkeypress = function(e) {
 				    e = e || window.event;
 				    var charCode = (typeof e.which == "number") ? e.which : e.keyCode;
