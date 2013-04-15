@@ -4,9 +4,11 @@
 <html>
 	<head>
 		<title>My first Three.js app</title>
-		<style>canvas { width: 100%; height: 100% }</style>
+		<style>canvas { width: 50%; height: 50% }</style>
   <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+  
+  
   		<script src="./scripts/three.min.js"></script>
 		<script src="./scripts/TrackballControls.js"></script>
 		<script src="./scripts/Clock.js"></script>
@@ -37,7 +39,7 @@
 			//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
 
 			var renderer = new THREE.WebGLRenderer();
-			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setSize(window.innerWidth/2, window.innerHeight/2);
 			document.body.appendChild(renderer.domElement);
 
 			var geometry = new THREE.TorusGeometry( 50, 20, 16, 50, Math.PI * 2);
@@ -113,13 +115,14 @@
 
 
 		  
-		  
+		  var count = 0;
 			function render() {
 				requestAnimationFrame(render);
 
 				//torus.rotation.x += 0.01;
 				//torus.rotation.y += 0.01;
-				
+				count += 0.01;
+				console.log(count)
 				// Fetch the delta from THREE.js' clock.
 			    var delta = clock.getDelta();
 			    // Pass it to the camera controller.
@@ -130,29 +133,6 @@
 			render();
 			
 
-	   function makePointSphere(scene, position, color){
-	   	
-	   	  if (!color) color = 0xCC0000;
-          var sphereMaterial =
-		  new THREE.MeshLambertMaterial(
-		    {
-		      color: color
-		    });
-
-            var sphere = new THREE.Mesh(
-
-			  new THREE.SphereGeometry(
-			    1,
-			    5,
-			    5),
-			
-			  sphereMaterial);
-			
-			sphere.position = position;
-			// add the sphere to the scene
-			scene.add(sphere);
-			spheres.push(sphere);
-	   }
 	   
 	   
 	  function makePointSphere(scene, position, color){

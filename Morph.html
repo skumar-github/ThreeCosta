@@ -1,0 +1,250 @@
+<!doctype html>
+ 
+<html lang="en">
+<html>
+	<head>
+		<title>Metamorphosis of Costa's Minimal Surface</title>
+		<style>canvas { width: 50%; height: 50% }</style>
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+ 
+ 
+ <script src="./scripts/__/__Globals__.js"></script>
+<script src="./scripts/__/__Init__.js"></script>
+<script src="./scripts/__/__MakeElement__.js"></script>
+<script src="./scripts/__/__MergeArgs__.js"></script>
+<script src="./scripts/__/__toPx__.js"></script>
+<script src="./scripts/__/__toInt__.js"></script>
+<script src="./scripts/__/__Utils__.js"></script>
+<script src="./scripts/__/DragAndDrop/__Droppable__.js"></script>
+<script src="./scripts/__/DragAndDrop/__DropZone__.js"></script>
+<script src="./scripts/__/GUI/__Slider__.js"></script>
+
+  		<script src="./scripts/three.min.js"></script>
+		<script src="./scripts/TrackballControls.js"></script>
+		<script src="./scripts/Clock.js"></script>
+		<script src="./vertLines.js"></script>
+		<script src="./scripts/OBJLoader.js"></script>
+
+
+	</head>
+	<body>
+		<script>
+		
+
+		var isMouseDown = false;
+		var onMouseDownPosition = {};
+		
+		var torus0;
+		var torus1;
+		var torus2;
+		var spheres = [];
+		
+		var lastClicked = -1;
+
+
+
+			//window.onmousedown = onDocumentMouseMove;
+
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera(20, window.innerWidth/window.innerHeight, 0.1, 1000);
+			//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth/2, window.innerHeight/2);
+			document.body.appendChild(renderer.domElement);
+
+			var geometry = new THREE.TorusGeometry( 50, 20, 16, 50, Math.PI * 2);
+			var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00, shading: THREE.FlatShading});
+			surfaceMaterial.side = THREE.DoubleSide;
+			var surfaceMaterial2 = new THREE.MeshLambertMaterial({color: 0xb536da, shading: THREE.FlatShading});
+			surfaceMaterial2.side = THREE.DoubleSide;			
+			var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x626262, wireframe: true});
+			var multiMaterial = [surfaceMaterial, wireframeMaterial];
+			var multiMaterial2 = [surfaceMaterial2, wireframeMaterial];
+
+			//var torus = THREE.SceneUtils.createMultiMaterialObject(geometry.clone(), multiMaterial);
+			//scene.add(torus);
+
+
+			var controls = new THREE.TrackballControls(camera);
+			
+
+			var pointLight = new THREE.PointLight(0xFFFFFF);
+			
+			// set its position
+			pointLight.position.x = 10;
+			pointLight.position.y = 250;
+			pointLight.position.z = 250;
+			
+			// add to the scene
+			scene.add(pointLight);
+
+			camera.position.z = 505;
+			
+			var clock = new THREE.Clock;
+			
+			
+			var loader = new THREE.OBJLoader();
+			
+			var vertTest = 10;
+	        //loader.load( "img/male02.obj", function ( object ) {
+	        loader.load( "./obj/0.obj", function ( object ) {
+	                    //object.position.y = - 80;
+	                var ge = object.children[0].geometry;
+	                ge.dynamic = true;
+
+					
+					//makePointSphere(scene, ge.vertices[vertTest]);
+	
+	                torus0 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial);
+
+	                //torus1.scale.set(.5,.5,.5)
+					//scene.add(torus1);
+					//console.log(torus1.children[0].geometry.vertices)
+	                //scene.add( object );
+	               	loader.load( "./obj/0.obj", function ( object ) {
+	                    //object.position.y = - 80;
+	                    var ge = object.children[0].geometry;
+	                    //ge.dynamic = true;
+	                    
+	                    
+	                    //makePointSphere(scene, ge.vertices[vertTest]);
+	
+	
+	                    torus1 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+						//torus2.scale.set(.5,.5,.5)
+						scene.add(torus1);
+						
+						//vertMaster(scene, torus1.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
+	
+			           } );
+			           	                
+	               	loader.load( "./obj/100.obj", function ( object ) {
+	                    //object.position.y = - 80;
+	                    var ge = object.children[0].geometry;
+	                    //ge.dynamic = true;
+	                    
+	                    
+	                    //makePointSphere(scene, ge.vertices[vertTest]);
+	
+	
+	                    torus2 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+						//torus2.scale.set(.5,.5,.5)
+						//scene.add(torus2);
+						
+						//vertMaster(scene, torus1.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
+	
+			           } );
+	            } );
+	                
+
+	 //----------------------------------
+	 // FRAME SLIDER
+	 //----------------------------------		
+	frameSlider = new __Slider__({
+		id: "_frameSlider", 
+		parent: document.body,
+		step: 1,
+		max: 100,
+		min: 0,
+		height_handle: 50,				//def 16
+  		width_handle: 20,				//def 8
+	});
+	
+	$(frameSlider.widget).css({
+		top : 100,
+		left : 600,
+		width : 300,
+		height: 5
+	});
+	
+	frameSlider.updateCSS()
+	
+	frameSlider.addSlideCallback(function(_slider){
+		console.log("SLIDER: " + _slider.currValue);
+		if (torus0 && torus1 && torus2){
+			//console.log("RENDER: " + frameSlider.currValue);
+		  	for (var i=0;i<vertMapA.length;i++){
+				
+
+				
+				var ptA = torus0.children[0].geometry.vertices[vertMapA[i]]
+				var ptB = torus2.children[0].geometry.vertices[vertMapB[i]];
+				
+				var dX = Math.round(ptB.x - ptA.x);
+				var dY = Math.round(ptB.y - ptA.y);
+				var dZ = Math.round(ptB.z - ptA.z);		
+				
+				var slVal = _slider.currValue/100;
+
+				//console.log("***")
+				//console.log("B", torus1.children[0].geometry.vertices[vertMapA[i]].x, dX, slVal*dX);
+
+
+
+				
+				torus1.children[0].geometry.vertices[vertMapA[i]] = {
+					x: torus0.children[0].geometry.vertices[vertMapA[i]].x + slVal*dX,
+					y: torus0.children[0].geometry.vertices[vertMapA[i]].y + slVal*dY,
+					z: torus0.children[0].geometry.vertices[vertMapA[i]].z + slVal*dZ,
+
+				}
+				
+				//console.log("1", torus1.children[0].geometry.vertices[vertMapA[i]]);
+				//console.log("2", torus2.children[0].geometry.vertices[vertMapA[i]]);
+				//c = torus1.children[0].geometry.vertices[vertMapA[i]];
+				//console.log(slVal, dX, dY, dZ, slVal*dX, slVal*dY, slVal*dZ,
+				//			"BEFORE: " + Math.round(b.x),Math.round(b.y),Math.round(b.z) + 
+				//			" AFTER: " + Math.round(c.x),Math.round(c.y),Math.round(c.z));
+				
+				if (i==5){
+					console.log("0", torus0.children[0].geometry.vertices[vertMapA[i]]);					
+					console.log("1", torus1.children[0].geometry.vertices[vertMapA[i]]);					
+					console.log("2", torus2.children[0].geometry.vertices[vertMapA[i]]);					
+				}
+			}	
+			//scene.remove(torus1);
+			//scene.add(torus1);
+			//render();
+		}
+	})
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				//stats.update();
+
+			}
+			
+			function render() {
+				//requestAnimationFrame(render);
+
+				//torus1.rotation.x += 0.01;
+				//torus.rotation.y += 0.01;
+				//count += 0.01;
+				//console.log(count)
+				// Fetch the delta from THREE.js' clock.
+
+		
+			    var delta = clock.getDelta();
+			    // Pass it to the camera controller.
+			    controls.update(delta);
+			    if (torus1)
+					torus1.children[0].geometry.verticesNeedUpdate = true;
+				renderer.render(scene, camera);
+			}
+			animate();
+			
+
+			 
+
+		</script>
+	</body>
+
+
+
+
+</html>
