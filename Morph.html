@@ -36,13 +36,24 @@
 		var onMouseDownPosition = {};
 		
 		var torus0;
-		var torus1;
+		var torusA;
 		var torus2;
 		var spheres = [];
 		
 		var lastClicked = -1;
 
+function rotateAroundWorldAxis(object, axis, radians) {
+    var rotWorldMatrix = new THREE.Matrix4();
+    rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
+    rotWorldMatrix.multiplySelf(object.matrix);        // pre-multiply
+    object.matrix = rotWorldMatrix;
 
+    // new code for Three.js v50+
+    object.rotation.setEulerFromRotationMatrix(object.matrix);
+
+    // old code for Three.js v49:
+    // object.rotation.getRotationFromMatrix(object.matrix, object.scale);
+}
 
 			//window.onmousedown = onDocumentMouseMove;
 
@@ -99,9 +110,9 @@
 	
 	                torus0 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial);
 
-	                //torus1.scale.set(.5,.5,.5)
-					//scene.add(torus1);
-					//console.log(torus1.children[0].geometry.vertices)
+	                //torusA.scale.set(.5,.5,.5)
+					//scene.add(torusA);
+					//console.log(torusA.children[0].geometry.vertices)
 	                //scene.add( object );
 	               	loader.load( "./obj/0.obj", function ( object ) {
 	                    //object.position.y = - 80;
@@ -110,13 +121,25 @@
 	                    
 	                    
 	                    //makePointSphere(scene, ge.vertices[vertTest]);
+						//var xAxis = new THREE.Vector3(1,0,0);
+					    //rotateAroundWorldAxis(ge, xAxis, Math.PI / 180)
+					    
 	
-	
-	                    torus1 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-						//torus2.scale.set(.5,.5,.5)
-						scene.add(torus1);
+	                    torusA = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+	                    torusB = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+	                    torusC = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+	                    torusD = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
+	                    
+	                    torusB.rotation.y = Math.PI;
+	                    torusC.scale.z = -1;
+	                    torusD.scale.x = -1;
+
+						scene.add(torusA);
+						scene.add(torusB);
+						scene.add(torusC);
+						scene.add(torusD);
 						
-						//vertMaster(scene, torus1.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
+						//vertMaster(scene, torusA.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
 	
 			           } );
 			           	                
@@ -133,7 +156,7 @@
 						//torus2.scale.set(.5,.5,.5)
 						//scene.add(torus2);
 						
-						//vertMaster(scene, torus1.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
+						//vertMaster(scene, torusA.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
 	
 			           } );
 	            } );
@@ -154,13 +177,11 @@
 	});
 			
 	frameSlider.addSlideCallback(function(slider){
-		//console.log("SLIDER: " + slider.value);
-		if (torus0 && torus1 && torus2){
-			//console.log("RENDER: " + frameSlider.value);
-		  	for (var i=0;i<vertMapA.length;i++){
-				
 
-				
+		if (torus0 && torusA && torus2){
+
+		  	for (var i=0;i<vertMapA.length;i++){
+
 				var ptA = torus0.children[0].geometry.vertices[vertMapA[i]]
 				var ptB = torus2.children[0].geometry.vertices[vertMapB[i]];
 				
@@ -170,35 +191,13 @@
 				
 				var slVal = slider.value/100;
 
-				//console.log("***")
-				//console.log("B", torus1.children[0].geometry.vertices[vertMapA[i]].x, dX, slVal*dX);
-
-
-
-				
-				torus1.children[0].geometry.vertices[vertMapA[i]] = {
+				torusA.children[0].geometry.vertices[vertMapA[i]] = {
 					x: torus0.children[0].geometry.vertices[vertMapA[i]].x + slVal*dX,
 					y: torus0.children[0].geometry.vertices[vertMapA[i]].y + slVal*dY,
 					z: torus0.children[0].geometry.vertices[vertMapA[i]].z + slVal*dZ,
 
 				}
-				
-				//console.log("1", torus1.children[0].geometry.vertices[vertMapA[i]]);
-				//console.log("2", torus2.children[0].geometry.vertices[vertMapA[i]]);
-				//c = torus1.children[0].geometry.vertices[vertMapA[i]];
-				//console.log(slVal, dX, dY, dZ, slVal*dX, slVal*dY, slVal*dZ,
-				//			"BEFORE: " + Math.round(b.x),Math.round(b.y),Math.round(b.z) + 
-				//			" AFTER: " + Math.round(c.x),Math.round(c.y),Math.round(c.z));
-				
-				if (i==5){
-//					console.log("0", torus0.children[0].geometry.vertices[vertMapA[i]]);					
-//					console.log("1", torus1.children[0].geometry.vertices[vertMapA[i]]);					
-//					console.log("2", torus2.children[0].geometry.vertices[vertMapA[i]]);					
-				}
 			}	
-			//scene.remove(torus1);
-			//scene.add(torus1);
-			//render();
 		}
 	})
 
@@ -214,7 +213,7 @@
 			function render() {
 				//requestAnimationFrame(render);
 
-				//torus1.rotation.x += 0.01;
+				//torusA.rotation.x += 0.01;
 				//torus.rotation.y += 0.01;
 				//count += 0.01;
 				//console.log(count)
@@ -224,8 +223,8 @@
 			    var delta = clock.getDelta();
 			    // Pass it to the camera controller.
 			    controls.update(delta);
-			    if (torus1)
-					torus1.children[0].geometry.verticesNeedUpdate = true;
+			    if (torusA)
+					torusA.children[0].geometry.verticesNeedUpdate = true;
 				renderer.render(scene, camera);
 			}
 			animate();
