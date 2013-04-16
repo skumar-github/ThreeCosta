@@ -146,11 +146,15 @@
 	frameSlider = new __HorizontalSlider__({
 		id: "_frameSlider", 
 		parent: document.body,
-		round: true
+		round: true,
+		CSS:{
+			top: 300,
+			left: 50,
+		}
 	});
 			
 	frameSlider.addSlideCallback(function(slider){
-		console.log("SLIDER: " + slider.value);
+		//console.log("SLIDER: " + slider.value);
 		if (torus0 && torus1 && torus2){
 			//console.log("RENDER: " + frameSlider.value);
 		  	for (var i=0;i<vertMapA.length;i++){
@@ -187,9 +191,9 @@
 				//			" AFTER: " + Math.round(c.x),Math.round(c.y),Math.round(c.z));
 				
 				if (i==5){
-					console.log("0", torus0.children[0].geometry.vertices[vertMapA[i]]);					
-					console.log("1", torus1.children[0].geometry.vertices[vertMapA[i]]);					
-					console.log("2", torus2.children[0].geometry.vertices[vertMapA[i]]);					
+//					console.log("0", torus0.children[0].geometry.vertices[vertMapA[i]]);					
+//					console.log("1", torus1.children[0].geometry.vertices[vertMapA[i]]);					
+//					console.log("2", torus2.children[0].geometry.vertices[vertMapA[i]]);					
 				}
 			}	
 			//scene.remove(torus1);
