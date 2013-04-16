@@ -37,6 +37,9 @@
 		
 		var torus0;
 		var torusA;
+		var torusB;
+		var torusC;
+		var torusD;
 		var torus2;
 		var spheres = [];
 		
@@ -81,16 +84,6 @@ function rotateAroundWorldAxis(object, axis, radians) {
 			var controls = new THREE.TrackballControls(camera);
 			
 
-			var pointLight = new THREE.PointLight(0xFFFFFF);
-			
-			// set its position
-			pointLight.position.x = 10;
-			pointLight.position.y = 250;
-			pointLight.position.z = 250;
-			
-			// add to the scene
-			scene.add(pointLight);
-
 			camera.position.z = 505;
 			
 			var clock = new THREE.Clock;
@@ -105,6 +98,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
 	                var ge = object.children[0].geometry;
 	                ge.dynamic = true;
 
+
 					
 					//makePointSphere(scene, ge.vertices[vertTest]);
 	
@@ -117,6 +111,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
 	               	loader.load( "./obj/0.obj", function ( object ) {
 	                    //object.position.y = - 80;
 	                    var ge = object.children[0].geometry;
+
 	                    //ge.dynamic = true;
 	                    
 	                    
@@ -133,11 +128,49 @@ function rotateAroundWorldAxis(object, axis, radians) {
 	                    torusB.rotation.y = Math.PI;
 	                    torusC.scale.z = -1;
 	                    torusD.scale.x = -1;
-
+	                    
+	                   
+						
+						function flipz(mesh){
+							/***************
+							// normal flip
+							mesh.children[0].geometry.dynamic = true
+							mesh.children[0].geometry.__dirtyVertices = true;
+							mesh.children[0].geometry.__dirtyNormals = true;
+							mesh.flipSided = true;
+							
+							for(var i = 0; i<mesh.children[0].geometry.faces.length; i++) {
+							    mesh.children[0].geometry.faces[i].normal.x = -1*mesh.children[0].geometry.faces[i].normal.x;
+							    mesh.children[0].geometry.faces[i].normal.y = -1*mesh.children[0].geometry.faces[i].normal.y;
+							    mesh.children[0].geometry.faces[i].normal.z = -1*mesh.children[0].geometry.faces[i].normal.z;
+							}
+							mesh.children[0].geometry.computeVertexNormals();
+							mesh.children[0].geometry.computeFaceNormals();
+							***************/							
+						}
+						
+						flipz(torusA);
+						flipz(torusB);
+						flipz(torusC);
+						flipz(torusD);
+						
 						scene.add(torusA);
 						scene.add(torusB);
 						scene.add(torusC);
 						scene.add(torusD);
+	
+						
+						var pointLight = new THREE.PointLight(0xFFFFFF);
+			
+						// set its position
+						pointLight.position.x = 10;
+						pointLight.position.y = 250;
+						pointLight.position.z = 250;
+						
+						// add to the scene
+						scene.add(pointLight);
+						
+						
 						
 						//vertMaster(scene, torusA.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
 	
@@ -218,8 +251,39 @@ function rotateAroundWorldAxis(object, axis, radians) {
 				//count += 0.01;
 				//console.log(count)
 				// Fetch the delta from THREE.js' clock.
+				function asdf(mesh){
+					mesh.children[0].geometry.dynamic = true;
+					mesh.children[0].verticesNeedUpdate = true; 
+					mesh.children[0].elementsNeedUpdate = true;
+					mesh.children[0].morphTargetsNeedUpdate = true;
+					mesh.children[0].uvsNeedUpdate = true;
+					mesh.children[0].normalsNeedUpdate = true;
+					mesh.children[0].colorsNeedUpdate = true;
+					mesh.children[0].tangentsNeedUpdate = true;
+				}
+				
+				if (torusA && torusB && torusC && torusD){
+					torusA.children[0].geometry.computeFaceNormals();
+					torusA.children[0].geometry.computeVertexNormals();
+					
+					torusB.children[0].geometry.computeFaceNormals();
+					torusB.children[0].geometry.computeVertexNormals();
+					
+					torusC.children[0].geometry.computeFaceNormals();
+					torusC.children[0].geometry.computeVertexNormals();
+					
+					torusD.children[0].geometry.computeFaceNormals();
+					torusC.children[0].geometry.computeVertexNormals();	
+					
+					asdf(torusA);
+					asdf(torusB);
+					asdf(torusC);
+					asdf(torusD);
+				}
+				
 
-		
+
+				
 			    var delta = clock.getDelta();
 			    // Pass it to the camera controller.
 			    controls.update(delta);
