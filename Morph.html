@@ -18,7 +18,7 @@
 <script src="./scripts/__/__Utils__.js"></script>
 <script src="./scripts/__/DragAndDrop/__Droppable__.js"></script>
 <script src="./scripts/__/DragAndDrop/__DropZone__.js"></script>
-<script src="./scripts/__/GUI/__Slider__.js"></script>
+<script src="./scripts/__/GUI/__HorizontalSlider__.js"></script>
 
   		<script src="./scripts/three.min.js"></script>
 		<script src="./scripts/TrackballControls.js"></script>
@@ -139,32 +139,20 @@
 	            } );
 	                
 
+
 	 //----------------------------------
 	 // FRAME SLIDER
 	 //----------------------------------		
-	frameSlider = new __Slider__({
+	frameSlider = new __HorizontalSlider__({
 		id: "_frameSlider", 
 		parent: document.body,
-		step: 1,
-		max: 100,
-		min: 0,
-		height_handle: 50,				//def 16
-  		width_handle: 20,				//def 8
+		round: true
 	});
-	
-	$(frameSlider.widget).css({
-		top : 100,
-		left : 600,
-		width : 300,
-		height: 5
-	});
-	
-	frameSlider.updateCSS()
-	
-	frameSlider.addSlideCallback(function(_slider){
-		console.log("SLIDER: " + _slider.currValue);
+			
+	frameSlider.addSlideCallback(function(slider){
+		console.log("SLIDER: " + slider.value);
 		if (torus0 && torus1 && torus2){
-			//console.log("RENDER: " + frameSlider.currValue);
+			//console.log("RENDER: " + frameSlider.value);
 		  	for (var i=0;i<vertMapA.length;i++){
 				
 
@@ -176,7 +164,7 @@
 				var dY = Math.round(ptB.y - ptA.y);
 				var dZ = Math.round(ptB.z - ptA.z);		
 				
-				var slVal = _slider.currValue/100;
+				var slVal = slider.value/100;
 
 				//console.log("***")
 				//console.log("B", torus1.children[0].geometry.vertices[vertMapA[i]].x, dX, slVal*dX);
