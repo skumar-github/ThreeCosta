@@ -1,42 +1,3 @@
-var defaultArgs__HorizontalSlider__ = {
-  	id: "__Slider__",			//def "sliderScroller"
-  	parent: document.body,
-  	handleOffset_track: 0,
-  	handleOffset_top: 0,
-  	start: 0,
-  	min:   0,
-  	max: 100,
-  	step: 1,
-  	value: 0,
-  	round: false,
-  	CSS: {
-  		position: "absolute",
-  		top: 50,
-  		left: 50,
-  		height: 20,
-  		width: 300,
-  		backgroundColor: "rgba(255,0,0,1)",
-  	},
-  	trackCSS: {
-  		position: "absolute",
-  		left: 0,
-  		height: 10,
-  		width: 300,
-  		borderWidth: 1,
-  		borderColor: "rgba(85,85,85,1)",
-  		backgroundColor: "rgba(125,125,225,1)",
-  	},
-  	handleCSS: {
-  		position: "absolute",
-  		top: 0,
-  		left: 0,
-  		width: 10,
-  		border: "solid",
-  		borderWidth: 1,
-  		borderColor: "rgba(85,85,85,1)",
-  		backgroundColor: "rgba(125,225,125,1)",
-  	}
-}
 
 
 
@@ -44,50 +5,27 @@ var defaultArgs__HorizontalSlider__ = {
 //  Init
 //
 //******************************************************
-function __HorizontalSlider__(args){
+function __horizontalSlider__(args){
+
+	this.setArgs(args); 
 	that = this;
-	this.args = (args) ? __MergeArgs__(defaultArgs__HorizontalSlider__, args) : defaultArgs__HorizontalSlider__;
-
-
-
 	
-	//----------------------------------
-	// WIDGET
-	//----------------------------------
-	this.widget = __MakeElement__("div", this.args.parent, this.args.id, this.args.CSS);
 
-
+	// WIDGET	
+	var widget = __makeElement__("div", this.currArgs().parent, this.currArgs().id, this.currArgs().widgetCSS);
 	
-	//----------------------------------
+
 	// TRACK
-	//----------------------------------
-	this.track =  __MakeElement__("div", this.widget, this.args.id + "_track", __MergeArgs__(this.args.trackCSS,{
-		top: __toInt__(this.widget.style.height)/2 - this.args.trackCSS.height/2
-	}));
-	
-		
-	
-	//----------------------------------
-	// HANDLE
-	//----------------------------------	
-	
-	// set the handleHeight, provided it's not defined
-	var handleHeight = (this.args.handleCSS && this.args.handleCSS.height) ? this.args.handleCSS.height : this.args.CSS.height;
-	this.args.handleCSS.height = handleHeight;
-	
-	// use the border margin
-	var borderMargin = (this.args.handleCSS.borderWidth) ? 2*(this.args.handleCSS.borderWidth) : 0;
-	this.handle =  __MakeElement__("div", this.widget, this.args.id + "_handle", __MergeArgs__(this.args.handleCSS,{
-		top: __toInt__(this.widget.style.height)/2 - this.args.handleCSS.height/2 - borderMargin/2,
-		left: parseInt(this.args.handleOffset_track),
-	}));
+	var track =  __makeElement__("div", widget, this.currArgs().id + "_track", this.currArgs().trackCSS);
+			
+
+	// HANDLE	
+	var handle =  __makeElement__("div", widget, this.currArgs().id + "_handle", this.currArgs().handleCSS);
 	
 
 
-	//----------------------------------
 	// BODY LISTENER
-	//----------------------------------
-	this.bodyMouseListener =  __MakeElement__("div", this.widget, this.args.id + "_bodyMouseListener", __MergeArgs__(this.args.handleCSS,{
+	var bodyMouseListener =  __makeElement__("div", widget, this.currArgs().id + "_bodyMouseListener", __mergeArgs__(this.currArgs().handleCSS,{
 		position: "fixed",
 		top: 0,
 		left: 0,
@@ -95,75 +33,137 @@ function __HorizontalSlider__(args){
 		height: "0%",
 		zIndex: 1999999999,
 		backgroundColor: "rgba(0,0,0,0)"
-	}));
+	}));
 	
-	
-	
-	
-	//----------------------------------
 	// GLOBALS - Positioning
-	//----------------------------------
-	this.widget_absolutePos = getAbsPos(that.widget);
-	this.track_absolutePos = getAbsPos(that.track);
-	this.handle_absolutePos = getAbsPos(that.handle);
+	var hStart_left = 	__absolutePosition__(handle).left;
+	var hStart_top = 	__absolutePosition__(handle).top;
+	this.handleStart = function(){ return { left: hStart_left, top: hStart_top }; }
 
 
 
-
-	//----------------------------------
 	// GLOBALS - Positional Domain
-	//----------------------------------
-	this.handleDomain = {
-		start: parseInt(this.args.handleOffset_track),
-		end:   parseInt(this.widget.style.width) - parseInt(this.handle.style.width) - this.args.handleOffset_track - borderMargin,
-	}
+	var handleDomain = {
+		start: 0,
+		end:   __toInt__(widget.style.width) - 
+			   __toInt__(handle.style.width) - 
+			   __toInt__(handle.style.borderWidth),
+	}	
+	this.handleDomain = function(){return handleDomain}
 
 
-	//----------------------------------
+
+
 	// GLOBALS - Slider values
-	//----------------------------------	
-	this.start = this.args.start;
-	this.min = this.args.min;
-	this.max = this.args.max;
+	this.start = this.currArgs().start;
+	this.min = this.currArgs().min;
+	this.max = this.currArgs().max;
 	
 	
-	
-	//----------------------------------
-	// GLOBALS - Callbacks
-	//----------------------------------	
-	this.slideCallbacks = [];
-
 
 	
 	//----------------------------------
 	// Set Mouse Methods
 	//----------------------------------		
-	this.setHandleMouseMethods();
+	widget.onmousedown = function(event){
+		event.stopPropagation();
+		that.moveHandle(event, handle);
+		that.startBodyListen(bodyMouseListener, handle);
+	}
+	widget.onmouseup = function(event) { that.stopBodyListen(bodyMouseListener); }
 	
 	
 
 	//----------------------------------
-	// Mousewheel Methods
+	// Mousewheel Methods - Listener
 	//----------------------------------
-	this.lastMouseWheelEvent	= 0;
-	if (this.widget.addEventListener) {
-		// IE9, Chrome, Safari, Opera
-		this.widget.addEventListener("mousewheel", MouseWheelHandler, false);
-		// Firefox
-		this.widget.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
-	}
-	// IE 6/7/8
-	else {this.widget.attachEvent("onmousewheel", MouseWheelHandler);}
+	this.lastMouseWheelEvent = 0;
+	if (widget.addEventListener) {
+		
+		widget.addEventListener("mousewheel", MouseWheelHandler, false); // IE9, Chrome, Safari, Opera
+		
+		widget.addEventListener("DOMMouseScroll", MouseWheelHandler, false); // Firefox
 	
-	//  Mousewheel stuff, from: http://www.sitepoint.com/html5-javascript-mouse-wheel/
-	function MouseWheelHandler(e) {
-		// cross-browser wheel delta
+	}
+	else {widget.attachEvent("onmousewheel", MouseWheelHandler);}  	// IE 6/7/8
+	
+
+
+	//----------------------------------
+	// Mousewheel Methods - Handler
+	//----------------------------------	
+	function MouseWheelHandler(e) { // cross-browser wheel delta
 		var e = window.event || e; // old IE support
 		var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-		that.moveHandle(e, delta);
+		that.moveHandle(e, handle, delta);
 		return false;
 	}	
+	
+	
+	
+	
+
+	//----------------------------------
+	// Slide Callbacks - Handler
+	//----------------------------------
+	var slideCallbacks = [];
+	this.addSlideCallback = function(callback){
+		slideCallbacks.push(callback);
+	}
+	this.runSlideCallbacks = function(){
+		for (var i=0; i<slideCallbacks.length; i++){
+			slideCallbacks[i](this);
+		};
+	}
 } 
+
+
+
+
+__horizontalSlider__.prototype.defaultArgs = function() {
+	
+	return {
+		
+	  	id: "__Slider__",			//def "sliderScroller"
+	  	parent: document.body,
+	  	start: 0,
+	  	min:   0,
+	  	max: 100,
+	  	step: 1,
+	  	value: 0,
+	  	round: false,
+	  	
+	  	widgetCSS: {
+	  		position: "absolute",
+	  		top: 50,
+	  		left: 50,
+	  		width: 300,
+	  		backgroundColor: "rgba(255,0,0,1)",
+	  	},
+	  	
+	  	trackCSS: {
+	  		height: 10,
+	  		width: 300,
+	  		position: "absolute",
+	  		border: "solid",
+	  		borderWidth: 1,
+	  		borderColor: "rgba(0,0,0,1)",
+	  		backgroundColor: "rgba(125,125,125,1)",
+	  	},
+	  	
+	  	handleCSS: {
+	  		height: 30,
+	  		width: 10,
+	  		position: "absolute",
+	  		border: "solid",
+	  		borderWidth: 1,
+	  		borderColor: "rgba(85,85,85,1)",
+	  		backgroundColor: "rgba(125,225,125,1)",
+	  	}
+  	
+  }
+}
+
 
 
 
@@ -171,27 +171,61 @@ function __HorizontalSlider__(args){
 //******************************************************
 //  
 //******************************************************
-__HorizontalSlider__.prototype.setHandleMouseMethods = function(){
-	this.isMouseDown = false;
-	var that = this;
+__horizontalSlider__.prototype.setArgs = function(newArgs){
+
+
+	// Argument check
+	if (newArgs.widgetCSS["height"]) { throw ("__horizontalSlider__: Please set the slider height by adjusting either handleCSS['height'] or trackCSS['height']");}
+	if (newArgs.widgetCSS["width"]) { throw ("__horizontalSlider__: Please set the slider width by adjusting either trackCSS['width']"); }
+
+
+	// See if newArgs are valid for entry based on the default keys
+	__validateArgs__("__horizontalSlider__", this.defaultArgs(), newArgs, function(){});
 
 	
-	this.widget.onmousedown = function(event){
-		//console.log("Mousedown!", event);
-		event.stopPropagation();
-		//that.isMouseDown = true;
-		that.moveHandle(event);
+	// Define currArgs either as default or previously entered args;
+	var currArgs = (this.currArgs)? this.currArgs() : this.defaultArgs();	
+
+	
+	// merge currArgs with newArgs
+	var mergedArgs = (newArgs) ? __mergeArgs__(currArgs, newArgs) : currArgs;
+	
 		
-		that.startBodyListen();
-	}
+	// calculate dims
+	hHandle = mergedArgs.handleCSS.height +  mergedArgs.handleCSS.borderWidth * 2; 
+	wHandle = mergedArgs.handleCSS.width +  mergedArgs.handleCSS.borderWidth * 2; 
+	hTrack = mergedArgs.trackCSS.height +  mergedArgs.trackCSS.borderWidth * 2; 
+	wTrack = mergedArgs.trackCSS.width +  mergedArgs.trackCSS.borderWidth * 2; 
 
+		
+	// Set the widget height to whichever is taller: height or track
+	mergedArgs.widgetCSS.height  = (hHandle > hTrack) ? hHandle : hTrack; 
+	mergedArgs.widgetCSS.width  = (wHandle > wTrack) ? wHandle : wTrack; 
 	
-	this.widget.onmouseup = function(event){
-		//console.log("Mouseup!", event)
-		//that.isMouseDown = false;
-		that.stopBodyListen();
-	}
+	mergedArgs.trackCSS.top = mergedArgs.widgetCSS.height/2 - 
+						      mergedArgs.trackCSS.height/2 - 
+						      mergedArgs.trackCSS.borderWidth;
+
+
+	// Define the currArgsfunction
+	this.currArgs = function(){return mergedArgs};
 }
+
+
+
+
+
+//******************************************************
+//  
+//******************************************************
+__horizontalSlider__.prototype.updateCSS = function(args){
+	
+	// If there are inputted args, we need to set + validate them
+	if (args) { this.setArgs(args) };
+	
+}
+
+
 
 
 
@@ -200,16 +234,12 @@ __HorizontalSlider__.prototype.setHandleMouseMethods = function(){
 //  This element is "activated" when the onmousedown is 
 //  clicked on the widget.
 //******************************************************
-__HorizontalSlider__.prototype.startBodyListen = function(event){
-
-	// Increase the bodyMouseListener width to the page dimensions
-	// so we have a page-level read of the mouse position
-	this.bodyMouseListener.style.width= "100%";
-	this.bodyMouseListener.style.height = "100%";
-	
-	// Apply a mousemove listener
-	this.bodyMouseListener.onmousemove = function(event){ that.moveHandle(event); }
+__horizontalSlider__.prototype.startBodyListen = function(bodyElt, handle){
+	bodyElt.style.width= "100%";
+	bodyElt.style.height = "100%";
+	bodyElt.onmousemove = function(event){ that.moveHandle(event, handle); }
 }
+
 
 
 
@@ -217,17 +247,12 @@ __HorizontalSlider__.prototype.startBodyListen = function(event){
 //******************************************************
 //  Clears the bodyMouseListener DIV element.
 //******************************************************
-__HorizontalSlider__.prototype.stopBodyListen = function(event){
-	// Increase the bodyMouseListener 
-	// width to the page dimensions
-	// so we have a page-level read of 
-	//  the mouse position
-	this.bodyMouseListener.style.width= "0%";
-	this.bodyMouseListener.style.height = "0%";
-	// Eliminate the mousemove 
-	// function defined in startBodyListen()
-	this.bodyMouseListener.onmousemove = function(){};
+__horizontalSlider__.prototype.stopBodyListen = function(bodyElt){
+	bodyElt.style.width= "0%";
+	bodyElt.style.height = "0%";
+	bodyElt.onmousemove = function(){};
 }
+
 
 
 
@@ -235,60 +260,53 @@ __HorizontalSlider__.prototype.stopBodyListen = function(event){
 //******************************************************
 //  
 //******************************************************
-__HorizontalSlider__.prototype.moveHandle = function(event, wheelDelta){
+__horizontalSlider__.prototype.moveHandle = function(event, handle, wheelDelta){
 		
 		event.stopPropagation();
 		
 		if (wheelDelta){
 			var d = new Date();
 			var newTime = d.getTime();
-			var step = this.args.step;
+			var step = this.currArgs().step;
 			var dTime = (newTime - this.lastMouseWheelEvent);
 			// respond to faster mousewheel
 			if (dTime < 250){  
 				// Need to develop a more appropriate mathematical relationship here
 				step *= 3;
 			}
-			var tempLeft = __toInt__(that.handle.style.left) + (wheelDelta * step);
+			var tempLeft = __toInt__(handle.style.left) + (wheelDelta * step);
 			this.lastMouseWheelEvent = d.getTime();			
 		}
 		else{
 			var newPt = getMouseXY(event);	
 			var tempLeft = newPt.x - // mouseclick x
-						   that.handle_absolutePos.left - // current abs positoin of the handle
-						   parseInt(that.handle.style.width)/2; // centers the handle on the mouse pointer			
+						   this.handleStart().left - // current abs positoin of the handle
+						   __toInt__(handle.style.width)/2; // centers the handle on the mouse pointer			
 		}
 
 		
-		// Reposition if outside of 
-		// domain
-		if (tempLeft < this.handleDomain.start){
-			tempLeft = this.handleDomain.start;
+		// Reposition if outside of domain
+		var dom = this.handleDomain();
+		if (tempLeft < dom.start){
+			tempLeft = dom.start;
 		}
-		if (tempLeft > this.handleDomain.end){
-			tempLeft = this.handleDomain.end;
+		if (tempLeft > dom.end){
+			tempLeft = dom.end;
 		}
 		
-		var pct = tempLeft / (that.handleDomain.end - that.handleDomain.start);
+		var pct = tempLeft / (dom.end - dom.start);
 		
 		that.value = pct * (that.max - that.min);
 		
-		if (that.args.round) {that.value = Math.round(that.value);}
+		if (that.currArgs.round) {that.value = Math.round(that.value);}
 		
-		that.handle.style.left = __toPx__(tempLeft);
+		handle.style.left = __toPx__(tempLeft);
 		
-		for (var i=0; i<that.slideCallbacks.length; i++){
-			that.slideCallbacks[i](that);
-		}		
+		that.runSlideCallbacks();	
 }
 
 
-//******************************************************
-//  
-//******************************************************
-__HorizontalSlider__.prototype.addSlideCallback = function(callback){
-	this.slideCallbacks.push(callback);
-}
+
 
 
 //******************************************************
@@ -313,20 +331,22 @@ function getMouseXY(e) {
 
 
 
+
 //******************************************************
 //  
 //******************************************************
-function getAbsPos( obj) {
+function __absolutePosition__( obj) {
+	
 	var o = (typeof obj == 'String') ? document.getElementById( obj ) : obj;
 	var pos = {top: 0, left: 0};
 	
 	while ( o.parentNode) {
 		
-		if (o.style.offsetTop){ pos.top += parseInt(o.style.offsetTop)};
-		if (o.style.offsetLeft){ pos.left += parseInt(o.style.offsetLeft)};
+		if (o.style.offsetTop){ pos.top += __toInt__(o.style.offsetTop)};
+		if (o.style.offsetLeft){ pos.left += __toInt__(o.style.offsetLeft)};
 		
-		if (o.style.top){ pos.top += parseInt(o.style.top)};
-		if (o.style.left){ pos.left += parseInt(o.style.left)};
+		if (o.style.top){ pos.top += __toInt__(o.style.top)};
+		if (o.style.left){ pos.left += __toInt__(o.style.left)};
 		
 		o = o.parentNode;
 		if ((o.nodeName == "BODY") || (o.nodeName == "body")){break;}
