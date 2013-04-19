@@ -44,21 +44,12 @@ function __horizontalSlider__(args){
 
 	// GLOBALS - Positional Domain
 	var handleDomain = {
-		start: 0,
-		end:   __toInt__(widget.style.width) - 
-			   __toInt__(handle.style.width) - 
-			   __toInt__(handle.style.borderWidth),
+		start: this.currArgs().handleOffsetLeft,
+		end:   __totalWidth__(widget) - __totalWidth__(handle) - this.currArgs().handleOffsetLeft,
 	}	
 	this.handleDomain = function(){return handleDomain}
 
 
-
-
-	// GLOBALS - Slider values
-	this.start = this.currArgs().start;
-	this.min = this.currArgs().min;
-	this.max = this.currArgs().max;
-	
 	
 
 	
@@ -72,12 +63,21 @@ function __horizontalSlider__(args){
 	}
 	widget.onmouseup = function(event) { that.stopBodyListen(bodyMouseListener); }
 	
+
 	
 
 	//----------------------------------
 	// Mousewheel Methods - Listener
 	//----------------------------------
-	this.lastMouseWheelEvent = 0;
+	var lastMouseWheelEvent = 0;
+	this.setMouseWheelEventTime = function(){
+		var d = new Date();
+		lastMouseWheelEvent = d.getTime();	
+	}
+	this.getLastMouseWheelEventTime = function(){
+		return lastMouseWheelEvent;	
+	}
+	
 	if (widget.addEventListener) {
 		
 		widget.addEventListener("mousewheel", MouseWheelHandler, false); // IE9, Chrome, Safari, Opera
@@ -132,7 +132,8 @@ __horizontalSlider__.prototype.defaultArgs = function() {
 	  	step: 1,
 	  	value: 0,
 	  	round: false,
-	  	
+	  	handleOffsetLeft: 0,
+	  	handleOffsetTop: 0,
 	  	widgetCSS: {
 	  		position: "absolute",
 	  		top: 50,
@@ -197,14 +198,18 @@ __horizontalSlider__.prototype.setArgs = function(newArgs){
 	hTrack = mergedArgs.trackCSS.height +  mergedArgs.trackCSS.borderWidth * 2; 
 	wTrack = mergedArgs.trackCSS.width +  mergedArgs.trackCSS.borderWidth * 2; 
 
-		
-	// Set the widget height to whichever is taller: height or track
 	mergedArgs.widgetCSS.height  = (hHandle > hTrack) ? hHandle : hTrack; 
 	mergedArgs.widgetCSS.width  = (wHandle > wTrack) ? wHandle : wTrack; 
-	
+		
+	// set the top of the track to the "middle of the widget"
 	mergedArgs.trackCSS.top = mergedArgs.widgetCSS.height/2 - 
 						      mergedArgs.trackCSS.height/2 - 
 						      mergedArgs.trackCSS.borderWidth;
+	
+	mergedArgs.handleCSS.left = mergedArgs.handleOffsetLeft;
+	mergedArgs.handleCSS.top = mergedArgs.handleOffsetTop;
+	
+
 
 
 	// Define the currArgsfunction
@@ -264,19 +269,25 @@ __horizontalSlider__.prototype.moveHandle = function(event, handle, wheelDelta){
 		
 		event.stopPropagation();
 		
+		// If the handle moves by mousewheel
 		if (wheelDelta){
-			var d = new Date();
-			var newTime = d.getTime();
+			
+			// get the current date and the delta
+			// from the last mousewheel move
 			var step = this.currArgs().step;
-			var dTime = (newTime - this.lastMouseWheelEvent);
-			// respond to faster mousewheel
+			var d = new Date();
+			var dTime = (d.getTime() - this.getLastMouseWheelEventTime());
+
+			// respond to faster mousewheel -- rather linear and crude
 			if (dTime < 250){  
-				// Need to develop a more appropriate mathematical relationship here
 				step *= 3;
 			}
+			
 			var tempLeft = __toInt__(handle.style.left) + (wheelDelta * step);
-			this.lastMouseWheelEvent = d.getTime();			
+
+			this.setMouseWheelEventTime();		
 		}
+		// If the handle moves by mouse
 		else{
 			var newPt = getMouseXY(event);	
 			var tempLeft = newPt.x - // mouseclick x
@@ -285,7 +296,7 @@ __horizontalSlider__.prototype.moveHandle = function(event, handle, wheelDelta){
 		}
 
 		
-		// Reposition if outside of domain
+		// Reposition handle if outside of its CSS domain
 		var dom = this.handleDomain();
 		if (tempLeft < dom.start){
 			tempLeft = dom.start;
@@ -294,14 +305,18 @@ __horizontalSlider__.prototype.moveHandle = function(event, handle, wheelDelta){
 			tempLeft = dom.end;
 		}
 		
+		// get the Slider value
 		var pct = tempLeft / (dom.end - dom.start);
-		
-		that.value = pct * (that.max - that.min);
-		
+		that.value = pct * (that.currArgs().max - that.currArgs().min);
+
+
+		// round the slider value if desired
 		if (that.currArgs.round) {that.value = Math.round(that.value);}
 		
+		// move the handle
 		handle.style.left = __toPx__(tempLeft);
 		
+		// run callbackls
 		that.runSlideCallbacks();	
 }
 
