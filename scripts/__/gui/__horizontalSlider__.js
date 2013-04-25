@@ -8,21 +8,42 @@
 function __horizontalSlider__(args){
 
 	this.setArgs(args); 
-	that = this;
+	var that = this;
 	
 
 	// WIDGET	
 	var widget = __makeElement__("div", this.currArgs().parent, this.currArgs().id, this.currArgs().widgetCSS);
-	
-
 	// TRACK
 	var track =  __makeElement__("div", widget, this.currArgs().id + "_track", this.currArgs().trackCSS);
-			
-
 	// HANDLE	
 	var handle =  __makeElement__("div", widget, this.currArgs().id + "_handle", this.currArgs().handleCSS);
 	
+	// Defining the update css version
+	this.updateCSS = function(args){
+		// If there are inputted args, we need to set + validate them
+		if (args) { this.setArgs(args) };
+		
+		__setCSS__(widget, this.currArgs().widgetCSS);
+		__setCSS__(track, this.currArgs().trackCSS);
+		__setCSS__(handle, this.currArgs().handleCSS);	
+		
+		this.value = this.currArgs().value;
+		
+		if (this.currArgs().value != 0){
+			this.moveHandle("byValue", {
+				handle: handle,
+				track: track,
+				value: this.currArgs().value
+			});
+		}
+	}
+	
+	
+	this.updateProperties = function(args){
+		this.updateCSS(args);
+	}
 
+	
 
 	// BODY LISTENER
 	var bodyMouseListener =  __makeElement__("div", widget, this.currArgs().id + "_bodyMouseListener", __mergeArgs__(this.currArgs().handleCSS,{
@@ -36,19 +57,22 @@ function __horizontalSlider__(args){
 	}));
 	
 	// GLOBALS - Positioning
-	var hStart_left = 	__absolutePosition__(handle).left;
-	var hStart_top = 	__absolutePosition__(handle).top;
-	this.handleStart = function(){ return { left: hStart_left, top: hStart_top }; }
+	this.handleStart = function(){ 
+		return { 
+			left: __absolutePosition__(handle).left, 
+			top: __absolutePosition__(handle).top 		  
+		} 
+	}
 
 
 
 	// GLOBALS - Positional Domain
-	var handleDomain = {
-		start: this.currArgs().handleOffsetLeft,
-		end:   __totalWidth__(widget) - __totalWidth__(handle) - this.currArgs().handleOffsetLeft,
-	}	
-	this.handleDomain = function(){return handleDomain}
-
+	this.handleDomain = function(){
+		return 	{
+			start: this.currArgs().handleOffsetLeft,
+			end:   __totalWidth__(widget) - __totalWidth__(handle) - this.currArgs().handleOffsetLeft,
+		}	
+	}
 
 	
 
@@ -58,8 +82,13 @@ function __horizontalSlider__(args){
 	//----------------------------------		
 	widget.onmousedown = function(event){
 		event.stopPropagation();
-		that.moveHandle(event, handle);
-		that.startBodyListen(bodyMouseListener, handle);
+		that.moveHandle("byMouse", {
+			track: track,
+			"event": event, 
+			handle: handle
+		});
+		
+		that.startBodyListen(bodyMouseListener, handle, track);
 	}
 	widget.onmouseup = function(event) { that.stopBodyListen(bodyMouseListener); }
 	
@@ -78,26 +107,31 @@ function __horizontalSlider__(args){
 		return lastMouseWheelEvent;	
 	}
 	
-	if (widget.addEventListener) {
+	this.bindToMouseWheel = function(element){
 		
-		widget.addEventListener("mousewheel", MouseWheelHandler, false); // IE9, Chrome, Safari, Opera
+		//----------------------------------
+		// Mousewheel Methods - Handler
+		//----------------------------------	
+		function MouseWheelHandler(e) { // cross-browser wheel delta
+			var e = window.event || e; // old IE support
+			var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+			that.moveHandle("byMouseWheel", {
+				"event": e, 
+				handle: handle,
+				wheelDelta: delta,
+			});
+			return false;
+		}	
 		
-		widget.addEventListener("DOMMouseScroll", MouseWheelHandler, false); // Firefox
-	
+		if (element.addEventListener) {
+			element.addEventListener("mousewheel", MouseWheelHandler, false); // IE9, Chrome, Safari, Opera	
+			element.addEventListener("DOMMouseScroll", MouseWheelHandler, false); // Firefox	
+		}
+		else {element.attachEvent("onmousewheel", MouseWheelHandler);}  	// IE 6/7/8
 	}
-	else {widget.attachEvent("onmousewheel", MouseWheelHandler);}  	// IE 6/7/8
-	
+	// And mousewheel scrolling over the widget will trigger a mousewheel event.
+	this.bindToMouseWheel(widget);
 
-
-	//----------------------------------
-	// Mousewheel Methods - Handler
-	//----------------------------------	
-	function MouseWheelHandler(e) { // cross-browser wheel delta
-		var e = window.event || e; // old IE support
-		var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-		that.moveHandle(e, handle, delta);
-		return false;
-	}	
 	
 	
 	
@@ -114,7 +148,27 @@ function __horizontalSlider__(args){
 		for (var i=0; i<slideCallbacks.length; i++){
 			slideCallbacks[i](this);
 		};
+		
+		
+		// linked Callbacks
+		if (that.linkedSliders && that.linkedSliders.length > 0 
+			&& that.linkedCallbacks && that.linkedCallbacks.length > 0){
+			for (var i=0;i<that.linkedCallbacks.length; i++){
+				that.linkedCallbacks[i](that);
+			}
+		}
 	}
+	
+
+	//----------------------------------
+	// linkedCallbacks - Handler
+	//----------------------------------	
+	this.addLinkedCallback = function(func){
+  		if (!that.linkedCallbacks)
+			that.linkedCallbacks = [];
+  		//addLinkedCallback(that, func);
+  		that.linkedCallbacks.push(func);
+  	}
 } 
 
 
@@ -131,7 +185,7 @@ __horizontalSlider__.prototype.defaultArgs = function() {
 	  	max: 100,
 	  	step: 1,
 	  	value: 0,
-	  	round: false,
+	  	round: true,
 	  	handleOffsetLeft: 0,
 	  	handleOffsetTop: 0,
 	  	widgetCSS: {
@@ -139,7 +193,7 @@ __horizontalSlider__.prototype.defaultArgs = function() {
 	  		top: 50,
 	  		left: 50,
 	  		width: 300,
-	  		backgroundColor: "rgba(255,0,0,1)",
+	  		//backgroundColor: "rgba(255,0,0,1)",
 	  	},
 	  	
 	  	trackCSS: {
@@ -150,6 +204,7 @@ __horizontalSlider__.prototype.defaultArgs = function() {
 	  		borderWidth: 1,
 	  		borderColor: "rgba(0,0,0,1)",
 	  		backgroundColor: "rgba(125,125,125,1)",
+	  		borderRadius: 0,
 	  	},
 	  	
 	  	handleCSS: {
@@ -160,6 +215,7 @@ __horizontalSlider__.prototype.defaultArgs = function() {
 	  		borderWidth: 1,
 	  		borderColor: "rgba(85,85,85,1)",
 	  		backgroundColor: "rgba(125,225,125,1)",
+	  		borderRadius: 0
 	  	}
   	
   }
@@ -176,8 +232,9 @@ __horizontalSlider__.prototype.setArgs = function(newArgs){
 
 
 	// Argument check
-	if (newArgs.widgetCSS["height"]) { throw ("__horizontalSlider__: Please set the slider height by adjusting either handleCSS['height'] or trackCSS['height']");}
-	if (newArgs.widgetCSS["width"]) { throw ("__horizontalSlider__: Please set the slider width by adjusting either trackCSS['width']"); }
+	//if (!newArgs.widgetCSS) { throw ("__horizontalSlider__: Invalid arguments - no 'widgetCSS' subObject in arguments.");}
+	if (newArgs.widgetCSS && newArgs.widgetCSS["height"]) { throw ("__horizontalSlider__: Please set the slider height by adjusting either handleCSS['height'] or trackCSS['height']");}
+	if (newArgs.widgetCSS && newArgs.widgetCSS["width"]) { throw ("__horizontalSlider__: Please set the slider width by adjusting either trackCSS['width']"); }
 
 
 	// See if newArgs are valid for entry based on the default keys
@@ -221,28 +278,21 @@ __horizontalSlider__.prototype.setArgs = function(newArgs){
 
 
 //******************************************************
-//  
-//******************************************************
-__horizontalSlider__.prototype.updateCSS = function(args){
-	
-	// If there are inputted args, we need to set + validate them
-	if (args) { this.setArgs(args) };
-	
-}
-
-
-
-
-
-//******************************************************
 //  Uses a DIV element to listen for body-level mouse position.
 //  This element is "activated" when the onmousedown is 
 //  clicked on the widget.
 //******************************************************
-__horizontalSlider__.prototype.startBodyListen = function(bodyElt, handle){
+__horizontalSlider__.prototype.startBodyListen = function(bodyElt, handle, track){
+	var that = this;
 	bodyElt.style.width= "100%";
 	bodyElt.style.height = "100%";
-	bodyElt.onmousemove = function(event){ that.moveHandle(event, handle); }
+	bodyElt.onmousemove = function(event){ 
+		that.moveHandle("byMouse", {
+			"event": event, 
+			handle: handle,
+			track: track
+		});
+	}
 }
 
 
@@ -261,43 +311,79 @@ __horizontalSlider__.prototype.stopBodyListen = function(bodyElt){
 
 
 
+//******************************************************
+//  Clears linked callbacks and sliders
+//******************************************************
+__horizontalSlider__.prototype.clearLinked= function(){
+	this.linkedCallbacks = [];
+	this.linkedSliders = [];
+}
+
+
+
 
 //******************************************************
 //  
 //******************************************************
-__horizontalSlider__.prototype.moveHandle = function(event, handle, wheelDelta){
+__horizontalSlider__.prototype.moveHandle = function(moveType, args){
+
+		var that = this;
 		
-		event.stopPropagation();
-		
-		// If the handle moves by mousewheel
-		if (wheelDelta){
+		// vars
+		var dom = this.handleDomain();
+				
+				
+		// Do not want to propagate to the DOM
+		// For either mouse or mouseWheel events
+		if (args.event) { args.event.stopPropagation(); } 
+
+
+		// MOUSEWHEEL
+		if (moveType == "byMouseWheel" && args.wheelDelta){
+
 			
-			// get the current date and the delta
-			// from the last mousewheel move
-			var step = this.currArgs().step;
+			// get the current date and the delta from the last mousewheel move
+			var step = (this.currArgs().step == null) ? 1 : this.currArgs().step;
 			var d = new Date();
 			var dTime = (d.getTime() - this.getLastMouseWheelEventTime());
+
 
 			// respond to faster mousewheel -- rather linear and crude
 			if (dTime < 250){  
 				step *= 3;
 			}
 			
-			var tempLeft = __toInt__(handle.style.left) + (wheelDelta * step);
-
+			
+			// generate a tempLeft
+			var tempLeft = __toInt__(args.handle.style.left) + (args.wheelDelta * step);
 			this.setMouseWheelEventTime();		
-		}
-		// If the handle moves by mouse
-		else{
-			var newPt = getMouseXY(event);	
-			var tempLeft = newPt.x - // mouseclick x
-						   this.handleStart().left - // current abs positoin of the handle
-						   __toInt__(handle.style.width)/2; // centers the handle on the mouse pointer			
 		}
 
 		
+		// MOUSE
+		else if (moveType == "byMouse"){
+			var newPt = getMouseXY(args.event);	
+				   
+			var tempLeft = newPt.x - // mouseclick x
+						   args.track.getBoundingClientRect().left - // current abs position of the handle
+						   __toInt__(args.handle.style.width)/2; // centers the handle on the mouse pointer		
+
+		}
+		
+		
+		// ENTERED
+		else if (moveType == "byValue"){
+			tempLeft = dom.start + (dom.end - dom.start) * (args.value / (that.currArgs().max - that.currArgs().min));
+		}
+
+
+		// Throw an error otherwise
+		else{
+			throw "__horizontalSlider__: invalid moveHandle arguments."
+		}
+		
+
 		// Reposition handle if outside of its CSS domain
-		var dom = this.handleDomain();
 		if (tempLeft < dom.start){
 			tempLeft = dom.start;
 		}
@@ -314,13 +400,49 @@ __horizontalSlider__.prototype.moveHandle = function(event, handle, wheelDelta){
 		if (that.currArgs.round) {that.value = Math.round(that.value);}
 		
 		// move the handle
-		handle.style.left = __toPx__(tempLeft);
+		args.handle.style.left = __toPx__(tempLeft);
 		
 		// run callbackls
 		that.runSlideCallbacks();	
 }
 
 
+
+
+
+//******************************************************
+//  Links the inputted slider (b)
+//******************************************************
+__horizontalSlider__.prototype.linkSlider = function(b){
+	
+	var that = this;
+	
+	if (this.linkedSliders){
+		for (var i=0;i<this.linkedSliders.length; i++){
+			if(b == this.linkedSliders[i]){
+				return;
+			}				
+		}
+		this.linkedSliders.push(b);		
+	}
+	else{
+		this.linkedSliders = [];
+		this.linkedSliders.push(b);	
+	}
+
+	this.addLinkedCallback(function(a){  
+			
+		var aDiff = a.currArgs().max - a.currArgs().min;
+		
+		var bDiff = b.currArgs().max - b.currArgs().min;
+		// percentage-based linking
+		var bVal = Math.round(bDiff * (a.value / aDiff));
+		
+		b.updateProperties({value: bVal});
+		b.runSlideCallbacks();
+		
+  	});
+}
 
 
 
@@ -347,28 +469,6 @@ function getMouseXY(e) {
 
 
 
-//******************************************************
-//  
-//******************************************************
-function __absolutePosition__( obj) {
-	
-	var o = (typeof obj == 'String') ? document.getElementById( obj ) : obj;
-	var pos = {top: 0, left: 0};
-	
-	while ( o.parentNode) {
-		
-		if (o.style.offsetTop){ pos.top += __toInt__(o.style.offsetTop)};
-		if (o.style.offsetLeft){ pos.left += __toInt__(o.style.offsetLeft)};
-		
-		if (o.style.top){ pos.top += __toInt__(o.style.top)};
-		if (o.style.left){ pos.left += __toInt__(o.style.left)};
-		
-		o = o.parentNode;
-		if ((o.nodeName == "BODY") || (o.nodeName == "body")){break;}
-		if (o.style.position && o.style.position == "fixed"){break;}
-	}
-	return pos;
-}
 
 
 

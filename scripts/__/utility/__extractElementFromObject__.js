@@ -3,7 +3,7 @@ function __extractElementFromObject__(o){
 	//------------------------------------
 	// Check to see if the object itself is an element
 	//------------------------------------							
-	if (__IsElement__(o)) {return o;}
+	if (__isElement__(o)) {return o;}
 	
 	
 	//------------------------------------
@@ -12,7 +12,7 @@ function __extractElementFromObject__(o){
 	else{
 		var eltKeys = ["elt", "widget", "element", "div"];
 		for (var i=0;i<eltKeys.length;i++){
-			if (__IsElement__(o[eltKeys[i]])) {return o[eltKeys[i]];}			
+			if (__isElement__(o[eltKeys[i]])) {return o[eltKeys[i]];}			
 		}  
 	}	
 	

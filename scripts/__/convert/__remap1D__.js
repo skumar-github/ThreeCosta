@@ -1,3 +1,6 @@
+
+
+
 function __remap1D__(n, dold, dnew){
 
 
@@ -5,16 +8,23 @@ function __remap1D__(n, dold, dnew){
 	//console.log("dold: " + dold)
 	//console.log("dnew: " + dnew)
 	
+	function swapElts(darr){
+		var holder = darr[0];
+		darr[0] = darr[1];
+		darr[1] = holder;
+		return darr;
+	}
+	
 	if ((dold[0] == dold[1]) || (dnew[0] == dnew[1])){
 		throw ("Remap: initial domain is equal!");
 	}
 	
 	if (dold[0] > dold[1]){
-		dold = __SwapArrayElements__(dold);
+		dold = swapElts(dold);
 	}
 
 	if (dnew[0] > dnew[1]){
-		dnew = __SwapArrayElements__(dnew);
+		dnew = swapElts(dnew);
 	}
 
 	if (n <= dold[0]){
@@ -50,3 +60,6 @@ function __remap1D__(n, dold, dnew){
 		adjOld: n
 	};
 }
+
+
+

@@ -18,7 +18,7 @@ function __makeElement__(type, parent, id, css){
   	parent.appendChild(e);
   
   if (css){
-  	  $(e).css(css)	
+  	  __setCSS__(e, css);	
   }
   return e;
 }
