@@ -48,6 +48,7 @@
 		var torusB;
 		var torusC;
 		var torusD;
+		var torusE;
 		var torus2;
 		var spheres = [];
 		
@@ -76,18 +77,30 @@ function rotateAroundWorldAxis(object, axis, radians) {
 			renderer.setSize(window.innerWidth/2, window.innerHeight/2);
 			document.body.appendChild(renderer.domElement);
 
-			var geometry = new THREE.TorusGeometry( 50, 20, 16, 50, Math.PI * 2);
-			var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00, shading: THREE.FlatShading});
+			
+			var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0xb536da, shading: THREE.FlatShading});
+			surfaceMaterial.needsUpdate = true;
 			surfaceMaterial.side = THREE.DoubleSide;
+			
+			
 			var surfaceMaterial2 = new THREE.MeshLambertMaterial({color: 0xb536da, shading: THREE.FlatShading});
+			surfaceMaterial2.needsUpdate = true;
 			surfaceMaterial2.side = THREE.DoubleSide;			
+			
+			var surfaceMaterial3 = new THREE.MeshLambertMaterial({color: 0xb536da, shading: THREE.FlatShading});
+			surfaceMaterial3.needsUpdate = true;
+			surfaceMaterial3.side = THREE.DoubleSide;	
+			
+			var surfaceMaterial4 = new THREE.MeshLambertMaterial({color: 0xb536da, shading: THREE.FlatShading});
+			surfaceMaterial4.needsUpdate = true;
+			surfaceMaterial4.side = THREE.DoubleSide;	
+			
+			
 			var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x626262, wireframe: true});
 			var multiMaterial = [surfaceMaterial, wireframeMaterial];
 			var multiMaterial2 = [surfaceMaterial2, wireframeMaterial];
-
-			//var torus = THREE.SceneUtils.createMultiMaterialObject(geometry.clone(), multiMaterial);
-			//scene.add(torus);
-
+			var multiMaterial3 = [surfaceMaterial3, wireframeMaterial];
+			var multiMaterial4 = [surfaceMaterial4, wireframeMaterial];
 
 			var controls = new THREE.TrackballControls(camera);
 			
@@ -106,83 +119,53 @@ function rotateAroundWorldAxis(object, axis, radians) {
 	                var ge = object.children[0].geometry;
 	                ge.dynamic = true;
 
-
-					
 					//makePointSphere(scene, ge.vertices[vertTest]);
 	
 	                torus0 = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial);
 
-	                //torusA.scale.set(.5,.5,.5)
+                    
+					torusA = THREE.SceneUtils.createMultiMaterialObject(ge.clone(), multiMaterial);
+					torusB = THREE.SceneUtils.createMultiMaterialObject(ge.clone(), multiMaterial2);
+					torusC = THREE.SceneUtils.createMultiMaterialObject(ge.clone(), multiMaterial3);
+					torusD = THREE.SceneUtils.createMultiMaterialObject(ge.clone(), multiMaterial4);
+
+	                torusB.rotation.y = Math.PI;
+                    torusC.scale.z = -1;
+                    torusD.scale.x = -1;                    
+                    
+                 	torusA.add(torusB);
+                 	torusA.add(torusC);
+                 	torusA.add(torusD);
+                 	
+                 	torusE = THREE.SceneUtils.createMultiMaterialObject(THREE.GeometryUtils.merge(torusA.children[0].geometry,
+                 													   torusD.children[0].geometry), multiMaterial4);
+					
 					//scene.add(torusA);
+<<<<<<< HEAD
 					//console.log(torusA.children[0].geometry.vertices)
 	                //scene.add( object );
 	               	loader.load( "./obj/orig/0.obj", function ( object ) {
 	                    //object.position.y = - 80;
 	                    var ge = object.children[0].geometry;
+=======
+					scene.add(torusE);
+					//scene.add(torusB);
+					//scene.add(torusC);
+					//scene.add(torusD);
 
-	                    //ge.dynamic = true;
-	                    
-	                    
-	                    //makePointSphere(scene, ge.vertices[vertTest]);
-						//var xAxis = new THREE.Vector3(1,0,0);
-					    //rotateAroundWorldAxis(ge, xAxis, Math.PI / 180)
-					    
-	
-	                    torusA = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-	                    torusB = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-	                    torusC = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-	                    torusD = THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial2);
-	                    
-	                    torusB.rotation.y = Math.PI;
-	                    torusC.scale.z = -1;
-	                    torusD.scale.x = -1;
-	                    
-	                   
-						
-						function flipz(mesh){
-							/***************
-							// normal flip
-							mesh.children[0].geometry.dynamic = true
-							mesh.children[0].geometry.__dirtyVertices = true;
-							mesh.children[0].geometry.__dirtyNormals = true;
-							mesh.flipSided = true;
-							
-							for(var i = 0; i<mesh.children[0].geometry.faces.length; i++) {
-							    mesh.children[0].geometry.faces[i].normal.x = -1*mesh.children[0].geometry.faces[i].normal.x;
-							    mesh.children[0].geometry.faces[i].normal.y = -1*mesh.children[0].geometry.faces[i].normal.y;
-							    mesh.children[0].geometry.faces[i].normal.z = -1*mesh.children[0].geometry.faces[i].normal.z;
-							}
-							mesh.children[0].geometry.computeVertexNormals();
-							mesh.children[0].geometry.computeFaceNormals();
-							***************/							
-						}
-						
-						flipz(torusA);
-						flipz(torusB);
-						flipz(torusC);
-						flipz(torusD);
-						
-						scene.add(torusA);
-						scene.add(torusB);
-						scene.add(torusC);
-						scene.add(torusD);
-	
-						
-						var pointLight = new THREE.PointLight(0xFFFFFF);
-			
-						// set its position
-						pointLight.position.x = 10;
-						pointLight.position.y = 250;
-						pointLight.position.z = 250;
-						
-						// add to the scene
-						scene.add(pointLight);
-						
-						
-						
-						//vertMaster(scene, torusA.children[0].geometry.vertices, torus2.children[0].geometry.vertices);
-	
-			           } );
+					
+					var pointLight = new THREE.PointLight(0xFFFFFF);
+		
+					// set its position
+					pointLight.position.x = 10;
+					pointLight.position.y = 250;
+					pointLight.position.z = 0;
+					pointLight.castShadow = true;
+					
+					// add to the scene
+					scene.add(pointLight);
+>>>>>>> Update Shaders = needs work
+
 			           	                
 	               	loader.load( "./obj/orig/100.obj", function ( object ) {
 	                    //object.position.y = - 80;
@@ -269,18 +252,31 @@ function rotateAroundWorldAxis(object, axis, radians) {
 				//count += 0.01;
 				//console.log(count)
 				// Fetch the delta from THREE.js' clock.
-				function asdf(mesh){
+				function asdf(mesh, flip){
 					mesh.children[0].geometry.dynamic = true;
+					mesh.children[0].geometry.computeTangents();
 					mesh.children[0].verticesNeedUpdate = true; 
-					mesh.children[0].elementsNeedUpdate = true;
-					mesh.children[0].morphTargetsNeedUpdate = true;
+					//mesh.children[0].elementsNeedUpdate = true;
+					//mesh.children[0].morphTargetsNeedUpdate = true;
 					mesh.children[0].uvsNeedUpdate = true;
 					mesh.children[0].normalsNeedUpdate = true;
 					mesh.children[0].colorsNeedUpdate = true;
 					mesh.children[0].tangentsNeedUpdate = true;
+					
+					if (flip){
+						for(var i = 0; i<mesh.children[0].geometry.faces.length; i++) {
+						    mesh.children[0].geometry.faces[i].normal.x = -1*mesh.children[0].geometry.faces[i].normal.x;
+						    mesh.children[0].geometry.faces[i].normal.y = -1*mesh.children[0].geometry.faces[i].normal.y;
+						    mesh.children[0].geometry.faces[i].normal.z = -1*mesh.children[0].geometry.faces[i].normal.z;
+						}	
+					}
 				}
 				
+
+				
 				if (torusA && torusB && torusC && torusD){
+
+					/*
 					torusA.children[0].geometry.computeFaceNormals();
 					torusA.children[0].geometry.computeVertexNormals();
 					
@@ -292,11 +288,12 @@ function rotateAroundWorldAxis(object, axis, radians) {
 					
 					torusD.children[0].geometry.computeFaceNormals();
 					torusC.children[0].geometry.computeVertexNormals();	
-					
-					asdf(torusA);
-					asdf(torusB);
-					asdf(torusC);
-					asdf(torusD);
+					*/
+					asdf(torusA, false);
+					asdf(torusB, true);
+					asdf(torusC, false);
+					asdf(torusD, true);
+
 				}
 				
 
