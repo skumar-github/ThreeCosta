@@ -16,10 +16,10 @@
 <script src="./scripts/__/css/__totalHeight__.js"></script>
 <script src="./scripts/__/css/__totalWidth__.js"></script>
 <script src="./scripts/__/css/__absolutePosition__.js"></script>
-<script src="./scripts/__/gui/__dropArea__.js"></script>
-<script src="./scripts/__/gui/__droppable__.js"></script>
-<script src="./scripts/__/gui/__horizontalSlider__.js"></script>
-<script src="./scripts/__/gui/__Slider__.js"></script>
+<script src="./scripts/__/GUI/__dropArea__.js"></script>
+<script src="./scripts/__/GUI/__droppable__.js"></script>
+<script src="./scripts/__/GUI/__horizontalSlider__.js"></script>
+<script src="./scripts/__/GUI/__Slider__.js"></script>
 <script src="./scripts/__/utility/__cloneCanvas__.js"></script>
 <script src="./scripts/__/utility/__debug__.js"></script>
 <script src="./scripts/__/utility/__extractElementFromObject__.js"></script>
@@ -101,7 +101,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
 			
 			var vertTest = 10;
 	        //loader.load( "img/male02.obj", function ( object ) {
-	        loader.load( "./obj/0.obj", function ( object ) {
+	        loader.load( "./obj/orig/0.obj", function ( object ) {
 	                    //object.position.y = - 80;
 	                var ge = object.children[0].geometry;
 	                ge.dynamic = true;
@@ -116,7 +116,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
 					//scene.add(torusA);
 					//console.log(torusA.children[0].geometry.vertices)
 	                //scene.add( object );
-	               	loader.load( "./obj/0.obj", function ( object ) {
+	               	loader.load( "./obj/orig/0.obj", function ( object ) {
 	                    //object.position.y = - 80;
 	                    var ge = object.children[0].geometry;
 
@@ -184,7 +184,7 @@ function rotateAroundWorldAxis(object, axis, radians) {
 	
 			           } );
 			           	                
-	               	loader.load( "./obj/100.obj", function ( object ) {
+	               	loader.load( "./obj/orig/100.obj", function ( object ) {
 	                    //object.position.y = - 80;
 	                    var ge = object.children[0].geometry;
 	                    //ge.dynamic = true;
