@@ -1,0 +1,219 @@
+<!doctype html>
+ 
+<html lang="en">
+<html>
+	<head>
+		<title>Final Morph</title>
+		<style>canvas { width: 50%; height: 50% }</style>
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+ 
+ 
+<script src="./scripts/__/convert/__remap1D__.js"></script>
+<script src="./scripts/__/convert/__toInt__.js"></script>
+<script src="./scripts/__/convert/__toPct__.js"></script>
+<script src="./scripts/__/convert/__toPx__.js"></script>
+<script src="./scripts/__/css/__setCSS-jQuery__.js"></script>
+<script src="./scripts/__/css/__totalHeight__.js"></script>
+<script src="./scripts/__/css/__totalWidth__.js"></script>
+<script src="./scripts/__/css/__absolutePosition__.js"></script>
+<script src="./scripts/__/GUI/__dropArea__.js"></script>
+<script src="./scripts/__/GUI/__droppable__.js"></script>
+<script src="./scripts/__/GUI/__horizontalSlider__.js"></script>
+<script src="./scripts/__/GUI/__Slider__.js"></script>
+<script src="./scripts/__/utility/__cloneCanvas__.js"></script>
+<script src="./scripts/__/utility/__debug__.js"></script>
+<script src="./scripts/__/utility/__extractElementFromObject__.js"></script>
+<script src="./scripts/__/utility/__isElement__.js"></script>
+<script src="./scripts/__/utility/__makeElement__.js"></script>
+<script src="./scripts/__/utility/__mergeArgs__.js"></script>
+<script src="./scripts/__/utility/__validateArgs__.js"></script>
+
+  		<script src="./scripts/three.min.js"></script>
+		<script src="./scripts/TrackballControls.js"></script>
+		<script src="./scripts/Clock.js"></script>
+		<script src="./vertLines.js"></script>
+		<script src="./scripts/OBJLoader.js"></script>
+
+
+	</head>
+	<body>
+		<script>
+		
+
+		var isMouseDown = false;
+		var onMouseDownPosition = {};
+		
+		var startTorii = [];
+		var movingTorii = [];
+		var endTorii = [];
+		
+		var lastClicked = -1;
+
+
+		//window.onmousedown = onDocumentMouseMove;
+
+		var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera(20, window.innerWidth/window.innerHeight, 0.1, 1000);
+		//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
+
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth/2, window.innerHeight/2);
+		document.body.appendChild(renderer.domElement);
+
+
+		 //----------------------------------
+		 // MATERIALS
+		 //----------------------------------	
+		var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00, shading: THREE.FlatShading});
+		surfaceMaterial.side = THREE.DoubleSide;
+		var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x626262, wireframe: true});
+		var multiMaterial = [surfaceMaterial, wireframeMaterial];
+
+		
+		var controls = new THREE.TrackballControls(camera);
+		camera.position.z = 505;
+		var clock = new THREE.Clock;
+
+
+		 //----------------------------------
+		 // LIGHTS
+		 //----------------------------------	
+		var pointLight = new THREE.PointLight(0xFFFFFF);
+		pointLight.position.x = 10;
+		pointLight.position.y = 250;
+		pointLight.position.z = 250;
+		scene.add(pointLight);
+
+
+		
+
+
+		 //----------------------------------
+		 // Load torus geometries
+		 //----------------------------------	
+		var loader = new THREE.OBJLoader();
+		var filePaths = ['orig', 'xy_flip', 'xy_flip2', 'xz_flip'];
+		for (var i=0; i<filePaths.length; i++){
+			
+	        loader.load( "./obj/" + filePaths[i] + "/0_" + filePaths[i] + ".obj", function ( object ) {	
+	                var ge = object.children[0].geometry;
+	                ge.dynamic = true;
+	                movingTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial));
+	                
+	                var ge2 = ge.clone();
+	                //ge.dynamic = true;
+	                startTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge2, multiMaterial));
+	                
+	                
+	                scene.add(movingTorii[movingTorii.length - 1]);
+	         } );			
+	         
+	         loader.load( "./obj/" + filePaths[i] + "/100_" + filePaths[i] + ".obj", function ( object ) {	
+	                var ge = object.children[0].geometry;	
+	                endTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial));
+
+	         } );
+			
+		}
+
+                
+
+
+	 //----------------------------------
+	 // FRAME SLIDER
+	 //----------------------------------		
+	frameSlider = new __horizontalSlider__({
+		id: "_frameSlider", 
+		parent: document.body,
+		round: true,
+		handleOffsetLeft: 0,
+	  	handleOffsetTop: 0,
+		widgetCSS:{
+			top: 500,
+			left: 50,
+		},
+		handleCSS:{
+			height: 20,
+			width: 12
+		},
+		trackCSS:{
+			width: 400,
+			height: 8
+		}
+	});
+			
+	frameSlider.addSlideCallback(function(slider){
+		
+
+
+	  	for (var i=0;i<vertMapA.length;i++){
+	  		
+			for (var j=0;j<movingTorii.length;j++){
+				
+				// Get the starting point
+				var ptA = startTorii[j].children[0].geometry.vertices[vertMapA[i]]
+				
+				//Gget the end points
+				var ptB = endTorii[j].children[0].geometry.vertices[vertMapB[i]];
+				
+				//determine the delta between the two
+				var dX = Math.round(ptB.x - ptA.x);
+				var dY = Math.round(ptB.y - ptA.y);
+				var dZ = Math.round(ptB.z - ptA.z);		
+				
+				// read the slider value
+				var slVal = slider.value/100;
+
+				// move the vertices according to the deltas
+				movingTorii[j].children[0].geometry.vertices[vertMapA[i]] = {
+					x: startTorii[j].children[0].geometry.vertices[vertMapA[i]].x + slVal*dX,
+					y: startTorii[j].children[0].geometry.vertices[vertMapA[i]].y + slVal*dY,
+					z: startTorii[j].children[0].geometry.vertices[vertMapA[i]].z + slVal*dZ,
+				}
+
+			}
+		}	
+		
+	})
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+			//stats.update();
+
+		}
+		
+		function render() {
+
+			
+
+
+			
+		    var delta = clock.getDelta();
+		    // Pass it to the camera controller.
+		    controls.update(delta);
+			renderer.render(scene, camera);
+			
+			
+			 //----------------------------------
+			 // This is supercritical
+			 //----------------------------------			
+			for (var j=0;j<movingTorii.length;j++){
+				movingTorii[j].children[0].geometry.verticesNeedUpdate = true;
+			}
+			
+		}
+		animate();
+			
+
+			 
+
+		</script>
+	</body>
+
+
+
+
+</html>
