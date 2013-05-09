@@ -50,29 +50,67 @@
 		var lastClicked = -1;
 
 
-		//window.onmousedown = onDocumentMouseMove;
 
 		var scene = new THREE.Scene();
 		var camera = new THREE.PerspectiveCamera(20, window.innerWidth/window.innerHeight, 0.1, 1000);
-		//var camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, - 500, 1000 );
 
+
+		 //----------------------------------
+		 // RENDERER
+		 //----------------------------------	
 		var renderer = new THREE.WebGLRenderer();
-		renderer.setSize(window.innerWidth/2, window.innerHeight/2);
-		document.body.appendChild(renderer.domElement);
+		var renderHeight = 400;
+		var renderRatio = renderHeight/window.innerHeight;
+		var renderWidth = window.innerWidth * renderRatio;
+		
+		renderer.setSize(renderWidth, renderHeight);
+		renderer.domElement.style.backgroundColor = "rgba(0,0,0,.5)";
+		 
+		var rendererHolder = __makeElement__("div", document.body, "renderHolder", {
+			position: "absolute",
+			left: 20,
+			top: 20,
+			overflow: "hidden",
+			width: renderHeight,
+			height: renderHeight,
+			border: "solid 1px rgba(0,0,0, 1)"
+		})
+		
+		__setCSS__(renderer, {
+			position: "absolute",
+			left: - 2000,// + 500/2 
+			top: 20
+		})
+		rendererHolder.appendChild(renderer.domElement);
+
 
 
 		 //----------------------------------
 		 // MATERIALS
 		 //----------------------------------	
-		var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0x00ff00, shading: THREE.FlatShading});
+		var surfaceMaterial = new THREE.MeshLambertMaterial({color: 0xBF3EFF, shading: THREE.FlatShading});
 		surfaceMaterial.side = THREE.DoubleSide;
-		var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x626262, wireframe: true});
+		var wireframeMaterial = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true});
 		var multiMaterial = [surfaceMaterial, wireframeMaterial];
 
-		
+
+
+
+		 //----------------------------------
+		 // TRACKBALL CONTROLS
+		 //----------------------------------		
 		var controls = new THREE.TrackballControls(camera);
-		camera.position.z = 505;
+		
+
+
+		 //----------------------------------
+		 // CAMERA
+		 //----------------------------------			
+		camera.position.z = 705;
+		camera.position.x = 0;
+		camera.position.y = 0;
 		var clock = new THREE.Clock;
+
 
 
 		 //----------------------------------
@@ -80,41 +118,58 @@
 		 //----------------------------------	
 		var pointLight = new THREE.PointLight(0xFFFFFF);
 		pointLight.position.x = 10;
-		pointLight.position.y = 250;
-		pointLight.position.z = 250;
+		pointLight.position.y = 0;
+		pointLight.position.z = 800;
 		scene.add(pointLight);
 
 
+		var pointLight2 = new THREE.PointLight(0xFFFFFF);
+		pointLight2.position.x = 10;
+		pointLight2.position.y = 0;
+		pointLight2.position.z = -800;
+		scene.add(pointLight2);
 		
 
 
 		 //----------------------------------
 		 // Load torus geometries
 		 //----------------------------------	
-		var loader = new THREE.OBJLoader();
-		var filePaths = ['orig', 'xy_flip', 'xy_flip2', 'xz_flip'];
-		for (var i=0; i<filePaths.length; i++){
-			
-	        loader.load( "./obj/" + filePaths[i] + "/0_" + filePaths[i] + ".obj", function ( object ) {	
+		function loadObj(pathName){
+			var loader = new THREE.OBJLoader();			
+
+			console.log(pathName)
+			loader.load( "./obj/" + pathName  + "/0_" + pathName  + ".obj", function ( object ) {	
 	                var ge = object.children[0].geometry;
 	                ge.dynamic = true;
 	                movingTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial));
 	                
 	                var ge2 = ge.clone();
-	                //ge.dynamic = true;
 	                startTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge2, multiMaterial));
 	                
 	                
 	                scene.add(movingTorii[movingTorii.length - 1]);
-	         } );			
-	         
-	         loader.load( "./obj/" + filePaths[i] + "/100_" + filePaths[i] + ".obj", function ( object ) {	
-	                var ge = object.children[0].geometry;	
-	                endTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial));
-
-	         } );
+	                console.log(pathName);
+		            loader.load( "./obj/" + pathName  + "/100_" + pathName  + ".obj", function ( obj ) {	
+		                var ge = obj.children[0].geometry;	
+		                endTorii.push(THREE.SceneUtils.createMultiMaterialObject(ge, multiMaterial));
+		                
+		                if(pathName == 'orig'){
+		                	loadObj('xy_flip');
+		                }
+		                else if (pathName == 'xy_flip'){
+		                	loadObj('xy_flip2');
+		                }
+		                else if (pathName == 'xy_flip2'){
+		                	loadObj('xz_flip');
+		                }
+		         	});
+	         } );							
 			
 		}
+		// Performs bizarrely if I don't do it this way
+		// likely has to do with async load timing
+		loadObj('orig');
+
 
                 
 
@@ -142,18 +197,18 @@
 		}
 	});
 			
-	frameSlider.addSlideCallback(function(slider){
-		
 
+	
+	frameSlider.addSlideCallback(function(slider){
 
 	  	for (var i=0;i<vertMapA.length;i++){
 	  		
-			for (var j=0;j<movingTorii.length;j++){
+			for (var j=0; j<movingTorii.length; j++){
 				
 				// Get the starting point
 				var ptA = startTorii[j].children[0].geometry.vertices[vertMapA[i]]
 				
-				//Gget the end points
+				//Get the end points
 				var ptB = endTorii[j].children[0].geometry.vertices[vertMapB[i]];
 				
 				//determine the delta between the two
